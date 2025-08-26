@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
 
     // Initialize the running loop
     bool run = true;
-    bool debug = false;
+    toggleLog(false);
 
     while(run) {
         auto start = std::chrono::high_resolution_clock::now();
@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
                     case SDL_SCANCODE_RIGHT: emu.joypad1 &= ~(1 << 3); break;
                     case SDL_SCANCODE_Z: emu.joypad1 &= ~(1 << 4); break;
                     case SDL_SCANCODE_X: emu.joypad1 &= ~(1 << 5); break;
-                    case SDL_SCANCODE_SPACE: debug = !debug; break;
+                    case SDL_SCANCODE_SPACE: std::cout << std::hex << (int)emu.cpu.programCounter << "\n"; break;
                 }
             }
 
@@ -83,14 +83,6 @@ int main(int argc, char* argv[]) {
                     case SDL_SCANCODE_X: emu.joypad1 |= (1 << 5); break;
                 }
             }
-        }
-
-        // Enable debugger
-        if(debug) {
-            std::cin.ignore();
-            toggleLog(true);
-        }else {
-            toggleLog(false); 
         }
 
         int time = emu.update(renderer);

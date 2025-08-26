@@ -3,9 +3,6 @@
 void sms::draw(SDL_Renderer* renderer) {
     bool enableDisplay = gpu.reg[0x1] & 0b01000000;
 
-    if(!enableDisplay)
-        return;
-
     // Select the Clear color from the sprite colors
     uint8 bgColor = gpu.reg[0x07] + 16;
     uint8 r = ((gpu.cram[bgColor] & 0b00000011) >> 0) * 85;
@@ -103,8 +100,8 @@ void sms::drawTile(SDL_Renderer* renderer, uint16 tileIndex, int x, int y, bool 
 }
 
 void sms::drawTilemap(SDL_Renderer* renderer, bool drawPriority) {
-    bool disableHorizontalScrollTopTwo      = (gpu.reg[0x0] & 0b01000000);
-    bool disableVerticalScrollRightEight    = (gpu.reg[0x0] & 0b10000000);
+    bool horizontalScrollLock       = (gpu.reg[0x0] & 0b01000000);
+    bool verticalScrollLock         = (gpu.reg[0x0] & 0b10000000);
 
     // Base address
     uint16 addr = ((gpu.reg[0x2] & 0b00001110) << 10);
@@ -114,7 +111,7 @@ void sms::drawTilemap(SDL_Renderer* renderer, bool drawPriority) {
     uint8 scrollX = gpu.reg[0x8];
     uint8 scrollY = gpu.reg[0x9];
 
-    for(int i = addr; i < 0x3EFF; i += 2) {
+    for(int i = addr; i < 0x3F00; i += 2) {
         uint16 entry = pairBytes(gpu.vram[i+1], gpu.vram[i]);
 
         uint16 tileIndex            = entry & 0b0000000111111111;
@@ -126,14 +123,14 @@ void sms::drawTilemap(SDL_Renderer* renderer, bool drawPriority) {
         int pos_x = x;
         int pos_y = y;
 
-        if(!disableHorizontalScrollTopTwo || y >= 16) {
+        if(!horizontalScrollLock || y >= 16) {
             pos_x += scrollX;
 
             if(pos_x > 256)
                 pos_x -= 256;
         }
 
-        if(!disableVerticalScrollRightEight || x <= 192) {
+        if(!verticalScrollLock || x < 248) {
             pos_y -= scrollY;
 
             if(pos_y < 0)

@@ -3,6 +3,7 @@
 
 #include "z80/z80.h"
 #include "vdp/vdp.h"
+#include "psg/psg.h"
 
 #include <iostream>
 #include <string>
@@ -16,6 +17,7 @@ struct sms {
 
     z80 cpu;
     vdp gpu;
+    psg audio;
 
     uint8* rom = NULL;
     int romSize;

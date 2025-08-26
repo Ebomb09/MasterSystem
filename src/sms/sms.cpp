@@ -1,10 +1,12 @@
 #include "sms.h"
+#include <iomanip>
 #include <stdexcept>
 #include <fstream>
 #include <functional>
 
 sms::sms() {
     using namespace std::placeholders;
+
     cpu.port_read = std::bind(sms::port_read, this, _1);
     cpu.port_write = std::bind(sms::port_write, this, _1, _2);
     cpu.mapper_read = std::bind(sms::mapper_read, this, _1);
@@ -58,6 +60,19 @@ int sms::update(SDL_Renderer* renderer) {
         // Each GPU cycle is 3 CPU cycles
         int clock = cpu.cycle();
 
+        // Invalid opcode found
+        if(clock <= 0) {
+
+            uint8 byte[4] {
+                cpu.mapper_read(cpu.programCounter),
+                cpu.mapper_read(cpu.programCounter+1),
+                cpu.mapper_read(cpu.programCounter+2),
+                cpu.mapper_read(cpu.programCounter+3)
+            };
+            std::cout << std::hex << (int)cpu.programCounter << ": " << (int)byte[0] << " " << (int)byte[1] << " " << (int)byte[2] << " " << (int)byte[3] << "\n";
+            throw std::runtime_error("INVALID OPCODE");
+        } 
+
         for(int i = 0; i < clock * 3; i ++) {
 
             if(gpu.cycle())
@@ -67,8 +82,9 @@ int sms::update(SDL_Renderer* renderer) {
                 draw(renderer);
         }
 
-        // Pull the CPU INT down when requesting an interrupt
-        cpu.signal_INT = (gpu.requestInterrupt) ? 0 : 1;
+        // Dispatch interrupts from gpu to cpu
+        if(gpu.canSendInterrupt()) 
+            cpu.signalINT();
 
         totalClock += clock;
     }
@@ -219,6 +235,9 @@ void sms::port_write(uint16 addr, uint8 data) {
 
     }else if(addr >= 0x01 && addr <= 0x3F && addr % 2 == 1) {
         joypadControl = data;
+
+    }else if(addr >= 0x40 && addr <= 0x7F) {
+        audio.write(data);
 
 
     }else if(addr >= 0x80 && addr <= 0xBE && addr % 2 == 0) {

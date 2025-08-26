@@ -130,9 +130,23 @@ int z80::processGeneralArithmeticGroup() {
         case 0b01110110:
         {
 
-            if(signal_NMI == 0 || signal_INT) 
-                incrementPC(1);
+            switch(haltState) {
 
+                // Wait for an interrupt
+                case HALT_NONE:
+                {
+                    haltState = HALT_WAIT;
+                    break;
+                }
+
+                // Continue execution
+                case HALT_GOOD:
+                {
+                    incrementPC(1);
+                    haltState = HALT_NONE;
+                    break;
+                }
+            }
             std::clog << "HALT\n";
             return 4;
         }
@@ -159,8 +173,8 @@ int z80::processGeneralArithmeticGroup() {
         case 0b11111011:
         {
             incrementPC(1);
-            IFF1 = 1;
-            IFF2 = 1;
+            // Set IFF's after the next instruction
+            eiState = EI_WAIT;
             std::clog << "EI\n";
             return 4;
         }

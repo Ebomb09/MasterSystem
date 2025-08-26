@@ -70,7 +70,7 @@ bool run_tests(z80& cpu, std::string path) {
         }
     
         std::memset(port, 0, 64*1024);
-        for(auto& portEntry : test["initial"]["ports"]) {
+        for(auto& portEntry : test["ports"]) {
             uint16 addr = (int)portEntry[0];
             uint8 data = (int)portEntry[1];
             port_write(addr, data);
@@ -250,7 +250,7 @@ int main(int argc, char* argv[]) {
         run_tests(cpu, entry.path().string());
     }
     
-    //run_tests(cpu, "tests/ED 45.json");
+    //run_tests(cpu, "tests/ED BB.json");
 
     log.close();
 

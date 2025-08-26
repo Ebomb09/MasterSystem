@@ -36,8 +36,15 @@ struct z80 {
     uint8 interruptMode;
     uint8 IFF1, IFF2;
 
-    uint8 signal_NMI = 1;
-    uint8 signal_INT = 1;
+    enum HaltState {
+        HALT_NONE, HALT_WAIT, HALT_GOOD
+    };
+    uint8 haltState;
+
+    enum EIState {
+        EI_NONE, EI_WAIT, EI_GOOD
+    };
+    uint8 eiState;
 
     std::function<uint8(uint16)>        port_read;
     std::function<void(uint16, uint8)> port_write;
@@ -51,9 +58,10 @@ public:
 
     int cycle();
 
-private:
-    int processInterupt();
+    void signalNMI();
+    void signalINT();
 
+private:
     int process8BitLoadGroup();
 
     // 16bit Load Group

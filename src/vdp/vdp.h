@@ -2,6 +2,7 @@
 #define SEGA_VDP_EMULATOR_H
 
 #include "utilities.h"
+#include <functional>
 
 struct vdp {
 
@@ -26,9 +27,11 @@ struct vdp {
     };
     uint8 status;
 
-    bool requestInterrupt = false;
-
     bool cycle();
+    bool canSendInterrupt();
+
+    bool requestLineInterrupt;
+    bool requestFrameInterrupt;
 
     uint8 readControlPort();
     void writeControlPort(uint8 data);
@@ -41,6 +44,8 @@ struct vdp {
     void incrementControlVRAMAddress();
     uint8 getControlRegisterIndex();
     uint8 getControlRegisterData();
+
+    void scanSprites();
 };
 
 #endif

@@ -26,6 +26,9 @@ set(MasterSystemSource
     # Sega VDP sources
     src/vdp/vdp.cpp
 
+    # Sega PSG sources
+    src/psg/psg.cpp
+
     # Emulator sources
     src/sms/sms.cpp
     src/sms/draw.cpp

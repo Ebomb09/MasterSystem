@@ -11,14 +11,34 @@ z80::z80() {
     memoryRefresh = 0;
     IFF1 = 0;
     IFF2 = 0;
+    haltState = HALT_NONE;
+    eiState = EI_NONE;
 }
 
 int z80::cycle() {
+
+    switch(eiState) {
+
+        // Process the next instruction after an EI
+        case EI_WAIT:
+        {
+            eiState = EI_GOOD;
+            break;
+        }
+
+        // After that instruction set IFF's to actually renable interrupts
+        case EI_GOOD:
+        {
+            eiState = EI_NONE;
+            IFF1 = 1;
+            IFF2 = 1;
+            break;
+        }
+    }
+
     std::clog << std::hex << (int)programCounter << ": ";
 
-    processInterupt();
-
-    int res = 0 ;
+    int res = 0;
     
     res = process8BitLoadGroup();
     if(res > 0) return res;
@@ -56,37 +76,42 @@ int z80::cycle() {
     return 0;
 }
 
-int z80::processInterupt() {
+void z80::signalNMI() {
 
-    // Interrupts activated when pulled down
-    if(signal_NMI == 0) {
-
-        // Push pre-interrupt address
-        PUSH(programCounter);
-
-        programCounter = 0x0066;
-        signal_NMI = 1;
-
-        // Do no process INT until RETN
-        IFF2 = IFF1;
-        IFF1 = 0;
-        return true;
+    if(haltState == HALT_WAIT) {
+        haltState = HALT_GOOD;
+        return;
     }
 
-    // Needs to be pulled up externally
-    if(signal_INT == 0 && IFF1 == 1) {
+    // Push pre-interrupt address
+    PUSH(programCounter);
 
-        // Push pre-interrupt address
-        PUSH(programCounter);
+    programCounter = 0x0066;
 
-        // Do no process any further interrupts until EI
-        IFF1 = 0;
-        IFF2 = 0;
+    // Do no process INT until RETN
+    IFF2 = IFF1;
+    IFF1 = 0;
+}
 
-        programCounter = 0x0038;
-        return true;
+void z80::signalINT() {
+
+    if(haltState == HALT_WAIT) {
+        haltState = HALT_GOOD;
+        return;
     }
-    return false;
+
+    // Do not capture this interrupt
+    if(IFF1 == 0)
+        return;
+
+    // Push pre-interrupt address
+    PUSH(programCounter);
+
+    // Do no process any further interrupts until EI
+    IFF1 = 0;
+    IFF2 = 0;
+
+    programCounter = 0x0038;
 }
 
 void z80::setFlag(uint8 flag, bool val) {
@@ -107,6 +132,7 @@ void z80::incrementPC(int val) {
     uint8 bit = memoryRefresh & 0b10000000;
     uint8 num = memoryRefresh & ~bit;
     num += val;
+    num &= ~bit;
     memoryRefresh = bit | num;
 }
 

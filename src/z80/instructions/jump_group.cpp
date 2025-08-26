@@ -44,7 +44,7 @@ int z80::processJumpGroup() {
             if(read_cccSymbol(ccc)) {
                 programCounter = addr;
             }
-            std::clog << "JP " << (int)ccc << ", " << std::hex << (int)addr << "\n";
+            std::clog << "JP " << name_cccSymbol(ccc) << ", " << std::hex << (int)addr << "\n";
             return 10;
         }
 

@@ -1,8 +1,13 @@
 #include "vdp.h"
 #include <bitset>
+#include <iostream>
+#include <cstring>
 
 vdp::vdp() {
     controlOffset = 0;
+
+    requestFrameInterrupt = false;
+    requestLineInterrupt = false;
 }
 
 void vdp::writeControlPort(uint8 data) {
@@ -45,8 +50,8 @@ void vdp::writeControlPort(uint8 data) {
 uint8 vdp::readControlPort() {
     controlOffset = 0;
 
-    // Reset interrupts
-    requestInterrupt = false;
+    requestFrameInterrupt = false;
+    requestLineInterrupt = false;
 
     // Return status and reset flags
     uint8 res = status;
@@ -124,32 +129,83 @@ bool vdp::cycle() {
 
     hcounter ++;
 
+    // Cleared HBlank
     if(hcounter >= 342) {
         hcounter = 0;
         vcounter ++;
     }
 
+    // Cleared VBlank
     if(vcounter == 313) {
         clearVBlank = true;
         vcounter = 0;
     }
 
-    if(enableFrameInterrupts) {
-
-        if(vcounter == 192 && hcounter == 0) {
-            status |= VBlank;
-        }
-
-        if(status & VBlank) {
-            if(enableFrameInterrupts) requestInterrupt = true;
-        }
+    // Check current line for any sprite collisions
+    if(hcounter == 0) {
+        scanSprites();
     }
 
-    if(enableLineInterrupts) {
+    // Cleared Active Display
+    if(vcounter == 192 && hcounter == 0) {
+        status |= VBlank;
+        if(enableFrameInterrupts) requestFrameInterrupt = true;
+    }
 
-        if(hcounter == reg[0xA]) {
-            if(enableLineInterrupts) requestInterrupt = true;
-        }
+    // Cleared LineCounter
+    if(vcounter > 0 && reg[0xA] > 0 && vcounter % reg[0xA] == 0 && hcounter == 0) {
+        if(enableLineInterrupts) requestLineInterrupt = true;
     }
     return clearVBlank;
+}
+
+bool vdp::canSendInterrupt() {
+    bool enableLineInterrupts   = reg[0x0] & 0b00010000;
+    bool enableFrameInterrupts  = reg[0x1] & 0b00100000;
+
+    return (enableFrameInterrupts && requestFrameInterrupt) || (enableLineInterrupts && requestLineInterrupt);
+}
+
+void vdp::scanSprites() {
+    bool enableLargeSprites         = (reg[0x1] & 0b00000010);
+
+    // Base address
+    uint16 addr = (reg[0x5] & 0b01111110) << 7;
+
+    // Sprite collision tracker
+    uint8 empty[256];
+    std::memset(empty, true, 256);
+    uint8 spriteBuffer = 0;
+
+    for(int i = i; i < 64; i ++) {
+        uint8 y             = vram[addr+i];
+        uint8 x             = vram[addr+0x80+i*2];
+
+        if(y == 0xD0) 
+            break;
+
+        uint8 w = (enableLargeSprites) ? 16 : 8;
+        uint8 h = (enableLargeSprites) ? 16 : 8;
+
+        // Sprite occurs on vcounter
+        if(y <= vcounter && vcounter < y+h) {
+            spriteBuffer ++;
+
+            // Sprite overflow
+            if(spriteBuffer >= 8) {
+                status |= SpriteOverflow;
+                break;
+            }
+
+            // Sprite collision
+            for(int j = x; j < x+w; j ++) {
+
+                if(!empty[j]) {
+                    status |= SpriteCollision;
+                    break;
+                }
+                empty[j] = false;
+            }
+        }
+    }
 }
