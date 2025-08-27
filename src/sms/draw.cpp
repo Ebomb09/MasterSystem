@@ -149,7 +149,7 @@ void sms::drawTilemap(SDL_Renderer* renderer, bool drawPriority) {
 }
 
 void sms::drawSprites(SDL_Renderer* renderer) {
-    bool enableDoubledSprites          = (gpu.reg[0x1] & 0b00000001);
+    bool enableDoubledSprites       = (gpu.reg[0x1] & 0b00000001);
     bool enableLargeSprites         = (gpu.reg[0x1] & 0b00000010);
     bool enable8thBitTileIndex      = (gpu.reg[0x6] & 0b00000100);
     bool enableShiftSpritesLeft     = (gpu.reg[0x0] & 0b00001000);
