@@ -29,9 +29,23 @@ int main(int argc, char* argv[]) {
     // Initialize SDL3
     SDL_Window* window;
     SDL_Renderer* renderer;
+    SDL_AudioStream* stream;
+
+    if(!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS)) {
+        std::cerr << SDL_GetError();
+        return 1;
+    }
+
+    stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, NULL, NULL, NULL);
+
+    if(!stream) {
+        std::cerr << SDL_GetError();
+        return 1;
+    }
+    SDL_ResumeAudioStreamDevice(stream);
 
     if(!SDL_CreateWindowAndRenderer("Master System", 256*optionScreenScale, 192*optionScreenScale, 0, &window, &renderer)) {
-        std::cerr << "Error initializing the window and renderer\n";
+        std::cerr << SDL_GetError();
         return 1;
     }
     SDL_SetRenderScale(renderer, optionScreenScale, optionScreenScale);
@@ -85,7 +99,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        int time = emu.update(renderer);
+        int time = emu.update(renderer, stream);
 
         auto end = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);

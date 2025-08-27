@@ -46,7 +46,7 @@ struct sms {
     uint8 port_read(uint16 addr);
     void port_write(uint16 addr, uint8 data);
 
-    int update(SDL_Renderer* renderer);
+    int update(SDL_Renderer* renderer, SDL_AudioStream* stream);
 
     void draw(SDL_Renderer* renderer);
     void drawTile(SDL_Renderer* renderer, uint16 tileIndex, int x, int y, bool horizontalFlip=false, bool verticalFlip=false, bool spritePalette = false, bool doubleScale = false, bool tileWrap = false);

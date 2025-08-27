@@ -5,12 +5,18 @@
 
 struct psg {
 
-    uint8 reg[4];
+    psg();
+
+    uint16 reg[4];
+    uint16 counter[4];
+    int output[4];
 
     uint8 latchChannel;
     uint8 latchType;
 
     void write(uint8 byte);
+    void cycle();
+    float getSample();
 };
 
 #endif

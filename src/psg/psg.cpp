@@ -1,4 +1,14 @@
 #include "psg.h"
+#include <iostream>
+
+psg::psg() {
+
+    for(int i = 0; i < 4; i ++) {
+        reg[i] = 0;
+        counter[i] = 0;
+        output[i] = 1;
+    }
+}
 
 void psg::write(uint8 byte) {
     uint8 latch = (byte & 0b10000000) >> 7;
@@ -17,7 +27,7 @@ void psg::write(uint8 byte) {
             // Volume
             }else {
                 reg[latchChannel] &= 0b0000001111111111;
-                reg[latchChannel] |= (byte & 0x0F) << 12;
+                reg[latchChannel] |= (byte & 0b00001111) << 12;
             }
             break;
         }
@@ -36,9 +46,38 @@ void psg::write(uint8 byte) {
             // Volume
             }else {
                 reg[latchChannel] &= 0b0000001111111111;
-                reg[latchChannel] |= (byte & 0x0F) << 12;
+                reg[latchChannel] |= (byte & 0b00001111) << 12;
             }
             break;
         }
     }
+}
+
+void psg::cycle() {
+    
+    for(int i = 0; i < 3; i ++) {
+        uint8 volume    = (reg[i] & 0b1111000000000000) >> 12;
+        uint16 tone     = (reg[i] & 0b0000001111111111);
+
+        if(counter[i] > 0) {
+            counter[i] --;
+
+        }else if(counter[i] == 0) {
+            counter[i] = tone;
+            output[i] *= -1;
+        }
+    }
+}
+
+float psg::getSample() {
+    float mix = 0.f;
+    
+    for(int i = 0; i < 4; i ++) {
+        uint8 volume    = (reg[i] & 0b1111000000000000) >> 12;
+        uint16 tone     = (reg[i] & 0b0000001111111111);
+
+        if(counter[i] > 0)
+            mix += output[i] * (1.0f - volume / 15.f);
+    }
+    return mix / 4.f;
 }

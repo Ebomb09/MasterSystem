@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <fstream>
 #include <functional>
+#include <cmath>
 
 sms::sms() {
     using namespace std::placeholders;
@@ -51,13 +52,11 @@ bool sms::loadRom(std::string romPath) {
     return true;
 }
 
-int sms::update(SDL_Renderer* renderer) {
+int sms::update(SDL_Renderer* renderer, SDL_AudioStream* stream) {
     bool clearVBlank = false;
     int totalClock = 0;
 
     while(!clearVBlank) {
-
-        // Each GPU cycle is 3 CPU cycles
         int clock = cpu.cycle();
 
         // Invalid opcode found
@@ -73,7 +72,7 @@ int sms::update(SDL_Renderer* renderer) {
             throw std::runtime_error("INVALID OPCODE");
         } 
 
-        for(int i = 0; i < clock * 3; i ++) {
+        for(int i = 0; i < clock * 3 / 2; i ++) {
 
             if(gpu.cycle())
                 clearVBlank = true;
@@ -89,8 +88,28 @@ int sms::update(SDL_Renderer* renderer) {
         totalClock += clock;
     }
 
-    // Return the theoretical time(ms) to clear a VBlank 
-    return totalClock * 15 * 1000 / 53693100;
+    // Generate the sound waves
+    std::vector<float> samples(totalClock / 15);
+    for(int i = 0; i < samples.size(); i ++ ) {
+        audio.cycle();
+        samples[i] = audio.getSample();
+    }
+
+    // Calculate the theoretical time(ms) to clear a VBlank 
+    int time = totalClock * 15 * 1000 / 53693100;
+
+    // Using time to determine format of the sample stream
+    if(time > 0) {
+        SDL_AudioSpec spec;
+        spec.channels = 1;
+        spec.format = SDL_AUDIO_F32;
+        spec.freq = 1000 * samples.size() / time;
+        SDL_SetAudioStreamFormat(stream, &spec, NULL);
+        SDL_PutAudioStreamData(stream, samples.data(), samples.size() * sizeof(float));
+        SDL_FlushAudioStream(stream);
+    }
+
+    return time;
 }
 
 uint8 sms::mapper_read(uint16 addr) {
