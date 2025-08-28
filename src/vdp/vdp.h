@@ -47,8 +47,6 @@ struct vdp {
     uint8 getControlRegisterIndex();
     uint8 getControlRegisterData();
 
-    void scanSprites();
-
     uint16 getScreenWidth();
     uint16 getScreenHeight();
     uint16 getNameTableBaseAddress();
@@ -59,6 +57,13 @@ struct vdp {
 
     uint16 getHCounterLimit();
     uint16 getVCounterLimit();
+
+    int frameBuffer[256][240];
+
+    void drawScanLine();
+    void drawTile(uint16 tileIndex, int x, int y, bool horizontalFlip=false, bool verticalFlip=false, bool spritePalette = false, bool doubleScale = false, bool tileWrap = false);
+    void drawTilemap(bool drawPriority);
+    void drawSprites();
 };
 
 #endif

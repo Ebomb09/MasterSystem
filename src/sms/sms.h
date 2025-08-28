@@ -49,9 +49,6 @@ struct sms {
     int update(SDL_Renderer* renderer, SDL_AudioStream* stream);
 
     void draw(SDL_Renderer* renderer);
-    void drawTile(SDL_Renderer* renderer, uint16 tileIndex, int x, int y, bool horizontalFlip=false, bool verticalFlip=false, bool spritePalette = false, bool doubleScale = false, bool tileWrap = false);
-    void drawTilemap(SDL_Renderer* renderer, bool drawPriority = false);
-    void drawSprites(SDL_Renderer* renderer);
 };
 
 #endif
