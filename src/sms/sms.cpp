@@ -24,6 +24,9 @@ sms::sms() {
     joypad2 = 0xFF;
     joypadControl = 0xFF;
     memoryControl = 0xFF;
+
+    // Set the region to PAL
+    gpu.region = 0;
 }
 
 sms::~sms() {
@@ -77,7 +80,7 @@ int sms::update(SDL_Renderer* renderer, SDL_AudioStream* stream) {
             if(gpu.cycle())
                 clearVBlank = true;
 
-            if(gpu.vcounter == 192 && gpu.hcounter == 0)
+            if(gpu.vCounter == 192 && gpu.hCounter == 0)
                 draw(renderer);
         }
 
@@ -95,8 +98,11 @@ int sms::update(SDL_Renderer* renderer, SDL_AudioStream* stream) {
         samples[i] = audio.getSample();
     }
 
+    // Determine NTSC / PAL clock rate
+    int masterClock = (gpu.region & 1 == 0) ? 53693100 : 53203400;
+
     // Calculate the theoretical time(ms) to clear a VBlank 
-    int time = totalClock * 15 * 1000 / 53693100;
+    int time = totalClock * 15 * 1000 / masterClock;
 
     // Using time to determine format of the sample stream
     if(time > 0) {
@@ -210,16 +216,11 @@ uint8 sms::port_read(uint16 addr) {
 
 
     }else if(addr >= 0x40 && addr <= 0x7E && addr % 2 == 0) {
-        
-        if(gpu.vcounter > 192) {
-            return gpu.reg[0xA] + gpu.vcounter - 193;
-        }else {
-            return gpu.vcounter;
-        }
+        return gpu.readVCounter();
 
 
     }else if(addr >= 0x41 && addr <= 0x7F && addr % 2 == 1) {
-        return gpu.hcounter >> 1;
+        return gpu.readHCounter();
 
 
     }else if(addr >= 0x80 && addr <= 0xBE && addr % 2 == 0) {
@@ -255,6 +256,7 @@ void sms::port_write(uint16 addr, uint8 data) {
     }else if(addr >= 0x01 && addr <= 0x3F && addr % 2 == 1) {
         joypadControl = data;
 
+        
     }else if(addr >= 0x40 && addr <= 0x7F) {
         audio.write(data);
 

@@ -8,16 +8,24 @@ vdp::vdp() {
 
     requestFrameInterrupt = false;
     requestLineInterrupt = false;
+
+    for(int i = 0; i < 16; i ++)
+        reg[i] = 0xFF;
+
+    hCounter = 0;
+    vCounter = 0;
+
+    mode = 4;
 }
 
 void vdp::writeControlPort(uint8 data) {
 
     if(controlOffset == 0) {
-        control = (control & 0xFF00) | data;
+        controlWord = (controlWord & 0xFF00) | data;
         controlOffset = 1;
 
     }else {
-        control = (control & 0x00FF) | ((uint16)data << 8);
+        controlWord = (controlWord & 0x00FF) | ((uint16)data << 8);
         controlOffset = 0;
 
         switch(getControlCode()) {
@@ -25,7 +33,7 @@ void vdp::writeControlPort(uint8 data) {
             // VRAM read
             case 0:
             {
-                buffer = vram[getControlVRAMAddress()];
+                readBuffer = vram[getControlVRAMAddress()];
                 incrementControlVRAMAddress();
                 break;
             }
@@ -33,7 +41,7 @@ void vdp::writeControlPort(uint8 data) {
             // VRAM write
             case 1:
             {
-                buffer = vram[getControlVRAMAddress()];
+                readBuffer = vram[getControlVRAMAddress()];
                 break;
             }
 
@@ -63,9 +71,9 @@ uint8 vdp::readDataPort() {
     controlOffset = 0;
 
     // Return the value in the current buffer and then update, and increment
-    uint8 res = buffer;
+    uint8 res = readBuffer;
 
-    buffer = vram[getControlVRAMAddress()];
+    readBuffer = vram[getControlVRAMAddress()];
     incrementControlVRAMAddress();
     
     return res;
@@ -81,7 +89,7 @@ void vdp::writeDataPort(uint8 data) {
         case 2:
         {
             vram[getControlVRAMAddress()] = data;
-            buffer = data;
+            readBuffer = data;
             incrementControlVRAMAddress();
             break;
         }
@@ -96,11 +104,11 @@ void vdp::writeDataPort(uint8 data) {
 }
 
 uint8 vdp::getControlCode() {
-    return (control & 0b1100000000000000) >> 14;
+    return (controlWord & 0b1100000000000000) >> 14;
 }
 
 uint16 vdp::getControlVRAMAddress() {
-    return (control & 0b0011111111111111);
+    return (controlWord & 0b0011111111111111);
 }
 
 void vdp::incrementControlVRAMAddress() {
@@ -111,15 +119,15 @@ void vdp::incrementControlVRAMAddress() {
     if(addr > 0x3FFF)
         addr = 0;
 
-    control = (control & 0b1100000000000000) + addr;
+    controlWord = (controlWord & 0b1100000000000000) + addr;
 }
 
 uint8 vdp::getControlRegisterIndex() {
-    return (control & 0b0000111100000000) >> 8;
+    return (controlWord & 0b0000111100000000) >> 8;
 }
 
 uint8 vdp::getControlRegisterData() {
-    return (control & 0b0000000011111111);
+    return (controlWord & 0b0000000011111111);
 }
 
 bool vdp::cycle() {
@@ -127,33 +135,38 @@ bool vdp::cycle() {
     bool enableLineInterrupts   = reg[0x0] & 0b00010000;
     bool enableFrameInterrupts  = reg[0x1] & 0b00100000;
 
-    hcounter ++;
+    uint16 screenWidth = getScreenWidth();
+    uint16 screenHeight = getScreenHeight();
+    uint16 hCounterLimit = getHCounterLimit();
+    uint16 vCounterLimit = getVCounterLimit();
+
+    hCounter ++;
 
     // Cleared HBlank
-    if(hcounter >= 342) {
-        hcounter = 0;
-        vcounter ++;
+    if(hCounter >= hCounterLimit) {
+        hCounter = 0;
+        vCounter ++;
     }
 
     // Cleared VBlank
-    if(vcounter == 313) {
+    if(vCounter >= vCounterLimit) {
         clearVBlank = true;
-        vcounter = 0;
+        vCounter = 0;
     }
 
     // Check current line for any sprite collisions
-    if(hcounter == 0) {
+    if(hCounter == 0) {
         scanSprites();
     }
 
     // Cleared Active Display
-    if(vcounter == 192 && hcounter == 0) {
+    if(vCounter == screenHeight-1 && hCounter == screenWidth) {
         status |= VBlank;
         if(enableFrameInterrupts) requestFrameInterrupt = true;
     }
 
     // Cleared LineCounter
-    if(vcounter > 0 && reg[0xA] > 0 && vcounter % reg[0xA] == 0 && hcounter == 0) {
+    if(reg[0xA] > 0 && (vCounter + 1) % reg[0xA] == 0 && vCounter < screenHeight && hCounter == screenWidth) {
         if(enableLineInterrupts) requestLineInterrupt = true;
     }
     return clearVBlank;
@@ -188,7 +201,7 @@ void vdp::scanSprites() {
         uint8 h = (enableLargeSprites) ? 16 : 8;
 
         // Sprite occurs on vcounter
-        if(y <= vcounter && vcounter < y+h) {
+        if(y <= vCounter && vCounter < y+h) {
             spriteBuffer ++;
 
             // Sprite overflow
@@ -207,5 +220,131 @@ void vdp::scanSprites() {
                 empty[j] = false;
             }
         }
+    }
+}
+
+uint16 vdp::getScreenWidth() {
+    return 256;
+}
+
+uint16 vdp::getScreenHeight() {
+
+    if(reg[0x1] & 0b00001000) {
+        return 240;
+
+    }else if(reg[0x1] & 0b00010000) {
+        return 224;
+    }
+    return 192;
+}
+
+uint16 vdp::getNameTableBaseAddress() {
+
+    if(getScreenHeight() != 192) {
+        return ((reg[0x2] & 0b00001100) >> 2) * 0x1000 + 0x0700;
+    }
+    return ((reg[0x2] & 0b00001110) >> 1) * 0x0800;
+}
+
+uint16 vdp::getSpriteTableBaseAddress() {
+    return ((reg[0x5] & 0b01111110) >> 1) * 0x0100;
+}
+
+uint8 vdp::readHCounter() {
+    return hCounter >> 1;
+}
+
+uint8 vdp::readVCounter() {
+
+    switch(region & 1) {
+
+        // NTSC
+        case 0:
+        {
+
+            switch(getScreenHeight()) {
+
+                case 192:
+                {
+                    if(vCounter >= 0xDB)
+                        return 0xD5 + vCounter - 0xDB;
+
+                    return vCounter;
+                }
+
+                case 224:
+                {
+                    if(vCounter >= 0xEB)
+                        return 0xE5 + vCounter - 0xEB;
+
+                    return vCounter;
+                }
+
+                case 240:
+                {
+                    if(vCounter >= 0x100)
+                        return vCounter - 0x100;
+
+                    return vCounter;
+                }
+            }
+            break;
+        }
+
+        // PAL
+        case 1:
+        {
+
+            switch(getScreenHeight()) {
+
+                case 192:
+                {
+                    if(vCounter >= 0xF3)
+                        return 0xBA + vCounter - 0xF3;
+
+                    return vCounter;
+                }
+
+                case 224:
+                {
+                    if(vCounter >= 0x103)
+                        return 0xCA + vCounter - 0x103;
+
+                    if(vCounter >= 0x100)
+                        return vCounter - 0x100;
+
+                    return vCounter;
+                }
+
+                case 240:
+                {
+                    if(vCounter >= 0x10B)
+                        return 0xD2 + vCounter - 0x10B;
+
+                    if(vCounter >= 0x100)
+                        return vCounter - 0x100;
+
+                    return vCounter;
+                }
+            }
+            break;
+        }
+    }
+    return 0;
+}
+
+uint16 vdp::getHCounterLimit(){
+    return 342;
+}
+
+uint16 vdp::getVCounterLimit(){
+
+    // NTSC
+    if(region & 1 == 0) {
+        return 262;
+
+    // PAL
+    }else {
+        return 313;
     }
 }

@@ -15,17 +15,19 @@ struct vdp {
     uint8 cram[32];
 
     uint8 controlOffset;
-    uint16 control;
-    uint8 buffer;
+    uint16 controlWord;
+    uint8 readBuffer;
 
-    uint16 vcounter;
-    uint16 hcounter;
+    uint16 vCounter;
+    uint16 hCounter;
     enum StatusFlags {
         VBlank              = 0b10000000,
         SpriteOverflow      = 0b01000000,
         SpriteCollision     = 0b00100000
     };
     uint8 status;
+
+    uint8 region;
 
     bool cycle();
     bool canSendInterrupt();
@@ -46,6 +48,17 @@ struct vdp {
     uint8 getControlRegisterData();
 
     void scanSprites();
+
+    uint16 getScreenWidth();
+    uint16 getScreenHeight();
+    uint16 getNameTableBaseAddress();
+    uint16 getSpriteTableBaseAddress();
+
+    uint8 readHCounter();
+    uint8 readVCounter();
+
+    uint16 getHCounterLimit();
+    uint16 getVCounterLimit();
 };
 
 #endif

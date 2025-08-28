@@ -23,6 +23,7 @@ void sms::drawTile(SDL_Renderer* renderer, uint16 tileIndex, int x, int y, bool 
     bool hideLeftMostPixels = (gpu.reg[0x0] & 0b00100000);
     
     uint16 addr = tileIndex * 32;
+    uint16 tileMapHeight = (gpu.getScreenHeight() == 192) ? 8*28 : 8*32;
 
     for(int pixel_y = 0; pixel_y < 8; pixel_y ++) {
         uint8 byte[4];
@@ -87,8 +88,8 @@ void sms::drawTile(SDL_Renderer* renderer, uint16 tileIndex, int x, int y, bool 
                 rect.h = 2;   
             }
 
-            if(tileWrap && rect.y >= 224)
-                rect.y -= 224;
+            if(tileWrap && rect.y >= tileMapHeight)
+                rect.y -= tileMapHeight;
 
             if(hideLeftMostPixels && rect.x < 8)
                 continue;
@@ -104,7 +105,7 @@ void sms::drawTilemap(SDL_Renderer* renderer, bool drawPriority) {
     bool verticalScrollLock         = (gpu.reg[0x0] & 0b10000000);
 
     // Base address
-    uint16 addr = ((gpu.reg[0x2] & 0b00001110) << 10);
+    uint16 addr = gpu.getNameTableBaseAddress();
 
     int x = 0, y = 0;
 
@@ -134,7 +135,7 @@ void sms::drawTilemap(SDL_Renderer* renderer, bool drawPriority) {
             pos_y -= scrollY;
 
             if(pos_y < 0)
-                pos_y += 224;
+                pos_y += (gpu.getScreenHeight() == 192) ? 8*28 : 8*32;
         }
 
         if(priority == drawPriority)
@@ -155,7 +156,7 @@ void sms::drawSprites(SDL_Renderer* renderer) {
     bool enableShiftSpritesLeft     = (gpu.reg[0x0] & 0b00001000);
 
     // Base address
-    uint16 addr = (gpu.reg[0x5] & 0b01111110) << 7;
+    uint16 addr = gpu.getSpriteTableBaseAddress();
 
     for(int i = i; i < 64; i ++) {
         uint8 y             = gpu.vram[addr+i];
