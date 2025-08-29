@@ -10,6 +10,8 @@ struct psg {
     uint16 reg[4];
     uint16 counter[4];
     int output[4];
+    uint16 linearFeedback;
+    int outputNoise;
 
     uint8 latchChannel;
     uint8 latchType;
