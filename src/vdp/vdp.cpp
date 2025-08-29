@@ -96,7 +96,7 @@ void vdp::writeDataPort(uint8 data) {
 
         case 3:
         {
-            cram[getControlVRAMAddress() % 32] = data;
+            cram[getControlVRAMAddress() % 64] = data;
             incrementControlVRAMAddress();
             break;
         }
@@ -135,38 +135,33 @@ bool vdp::cycle() {
     bool enableLineInterrupts   = reg[0x0] & 0b00010000;
     bool enableFrameInterrupts  = reg[0x1] & 0b00100000;
 
-    uint16 screenWidth = getScreenWidth();
-    uint16 screenHeight = getScreenHeight();
-    uint16 hCounterLimit = getHCounterLimit();
-    uint16 vCounterLimit = getVCounterLimit();
-
     hCounter ++;
 
     // Cleared HBlank
-    if(hCounter >= hCounterLimit) {
+    if(hCounter >= getHCounterLimit()) {
         hCounter = 0;
         vCounter ++;
     }
 
     // Cleared VBlank
-    if(vCounter >= vCounterLimit) {
+    if(vCounter >= getVCounterLimit()) {
         clearVBlank = true;
         vCounter = 0;
     }
 
     // Render the scanline
-    if(vCounter < screenHeight && hCounter == screenWidth) {
+    if(vCounter < getActiveDisplayHeight() && hCounter == getActiveDisplayWidth()) {
         drawScanLine();
     }
 
     // Cleared Active Display
-    if(vCounter == screenHeight-1 && hCounter == screenWidth) {
+    if(vCounter == getActiveDisplayHeight()-1 && hCounter == getActiveDisplayWidth()) {
         status |= VBlank;
         if(enableFrameInterrupts) requestFrameInterrupt = true;
     }
 
     // Cleared LineCounter
-    if(reg[0xA] > 0 && vCounter > 0 && vCounter % reg[0xA] == 0 && vCounter < screenHeight && hCounter == screenWidth) {
+    if(reg[0xA] > 0 && vCounter > 0 && vCounter % reg[0xA] == 0 && vCounter < getActiveDisplayHeight() && hCounter == getActiveDisplayWidth()) {
         if(enableLineInterrupts) requestLineInterrupt = true;
     }
     return clearVBlank;
@@ -179,11 +174,11 @@ bool vdp::canSendInterrupt() {
     return (enableFrameInterrupts && requestFrameInterrupt) || (enableLineInterrupts && requestLineInterrupt);
 }
 
-uint16 vdp::getScreenWidth() {
+uint16 vdp::getActiveDisplayWidth() {
     return 256;
 }
 
-uint16 vdp::getScreenHeight() {
+uint16 vdp::getActiveDisplayHeight() {
 
     if(reg[0x1] & 0b00001000) {
         return 240;
@@ -194,9 +189,49 @@ uint16 vdp::getScreenHeight() {
     return 192;
 }
 
+uint16 vdp::getScreenWidth() {
+
+    switch(getDeviceType()) {
+
+        case GAME_GEAR:
+            return 160;
+
+        default:
+            return getActiveDisplayWidth();
+    }
+}
+
+uint16 vdp::getScreenHeight() {
+
+    switch(getDeviceType()) {
+
+        case GAME_GEAR:
+            return 144;
+
+        default:
+            return getActiveDisplayHeight();
+    }
+}
+
+uint16 vdp::getScreenOffsetX() {
+
+    if(getDeviceType() == GAME_GEAR)
+        return 48;
+
+    return 0;
+}
+
+uint16 vdp::getScreenOffsetY() {
+
+    if(getDeviceType() == GAME_GEAR)
+        return 24;
+
+    return 0;
+}
+
 uint16 vdp::getNameTableBaseAddress() {
 
-    if(getScreenHeight() != 192) {
+    if(getActiveDisplayHeight() != 192) {
         return ((reg[0x2] & 0b00001100) >> 2) * 0x1000 + 0x0700;
     }
     return ((reg[0x2] & 0b00001110) >> 1) * 0x0800;
@@ -212,13 +247,14 @@ uint8 vdp::readHCounter() {
 
 uint8 vdp::readVCounter() {
 
-    switch(region & 1) {
+    switch(getDeviceType()) {
 
         // NTSC
-        case 0:
+        case MASTER_SYSTEM_NTSC:
+        case GAME_GEAR:
         {
 
-            switch(getScreenHeight()) {
+            switch(getActiveDisplayHeight()) {
 
                 case 192:
                 {
@@ -248,10 +284,10 @@ uint8 vdp::readVCounter() {
         }
 
         // PAL
-        case 1:
+        case MASTER_SYSTEM_PAL:
         {
 
-            switch(getScreenHeight()) {
+            switch(getActiveDisplayHeight()) {
 
                 case 192:
                 {
@@ -296,13 +332,20 @@ uint16 vdp::getHCounterLimit(){
 uint16 vdp::getVCounterLimit(){
 
     // NTSC
-    if(region & 1 == 0) {
-        return 262;
+    switch(getDeviceType()) {
 
-    // PAL
-    }else {
-        return 313;
+        case MASTER_SYSTEM_NTSC:
+        case GAME_GEAR:
+        {
+            return 262;
+        }
+
+        case MASTER_SYSTEM_PAL:
+        {
+            return 313;
+        }
     }
+    return 0;
 }
 
 void vdp::drawScanLine() {
@@ -312,7 +355,7 @@ void vdp::drawScanLine() {
     uint8 bgColor = reg[0x07] + 16;
 
     for(int x = 0; x < 256; x ++) 
-        frameBuffer[x][vCounter] = cram[bgColor];
+        frameBuffer[x][vCounter] = getColor(bgColor);
 
     // Render the tilemap
     if(enableDisplay) {
@@ -326,7 +369,7 @@ void vdp::drawTile(uint16 tileIndex, int x, int y, bool horizontalFlip, bool ver
     bool hideLeftMostPixels = (reg[0x0] & 0b00100000);
     
     uint16 addr = tileIndex * 32;
-    uint16 tileMapHeight = (getScreenHeight() == 192) ? 8*28 : 8*32;
+    uint16 tileMapHeight = (getActiveDisplayHeight() == 192) ? 8*28 : 8*32;
 
     uint8 size = (doubleScale) ? 16 : 8;
 
@@ -393,7 +436,7 @@ void vdp::drawTile(uint16 tileIndex, int x, int y, bool horizontalFlip, bool ver
             if(hideLeftMostPixels && final_x < 8)
                 continue;
 
-            frameBuffer[final_x][final_y] = cram[paletteIndex];
+            frameBuffer[final_x][final_y] = getColor(paletteIndex);
         }
     }
 }
@@ -433,7 +476,7 @@ void vdp::drawTilemap(bool drawPriority) {
             pos_y -= scrollY;
 
             if(pos_y < 0)
-                pos_y += (getScreenHeight() == 192) ? 8*28 : 8*32;
+                pos_y += (getActiveDisplayHeight() == 192) ? 8*28 : 8*32;
         }
 
         if(pos_y <= vCounter && vCounter < pos_y+8) {
@@ -491,7 +534,8 @@ void vdp::drawSprites() {
             // Sprite overflow, exit condition
             if(spriteBuffer >= 8) {
                 status |= SpriteOverflow;
-                break;
+                // Break for more accurate sprite flickering
+                // break;
             }
 
             // Sprite collision
@@ -516,4 +560,29 @@ void vdp::drawSprites() {
             }
         }
     }
+}
+
+int vdp::getColor(uint8 paletteIndex) {
+    uint8 r, g, b;
+
+    switch(getDeviceType()) {
+
+        case MASTER_SYSTEM_NTSC:
+        case MASTER_SYSTEM_PAL:
+        {
+            r = ((cram[paletteIndex] & 0b00000011) >> 0) * 85;
+            g = ((cram[paletteIndex] & 0b00001100) >> 2) * 85;
+            b = ((cram[paletteIndex] & 0b00110000) >> 4) * 85;
+            break;
+        }
+
+        case GAME_GEAR:
+        {
+            r = ((cram[paletteIndex*2+0] & 0b00001111) >> 0) * 17;
+            g = ((cram[paletteIndex*2+0] & 0b11110000) >> 4) * 17;
+            b = ((cram[paletteIndex*2+1] & 0b00001111) >> 0) * 17;
+            break;
+        }
+    }
+    return (r << 0) | (g << 8) | (b << 16);
 }

@@ -8,6 +8,12 @@ using sint8 = signed char;
 using uint16 = unsigned short;
 using sint16 = signed short;
 
+enum DeviceType {
+    MASTER_SYSTEM_NTSC,
+    MASTER_SYSTEM_PAL,
+    GAME_GEAR
+};
+
 uint16 pairBytes(uint8 hi, uint8 lo);
 
 bool halfCarry8(uint8 a, uint8 b, uint8 c = 0);

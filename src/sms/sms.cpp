@@ -13,6 +13,8 @@ sms::sms() {
     cpu.mapper_read = std::bind(sms::mapper_read, this, _1);
     cpu.mapper_write = std::bind(sms::mapper_write, this, _1, _2);
 
+    gpu.getDeviceType = std::bind(sms::getDeviceType, this);
+
     // Initialize the slot indices
     ram[0x1FFC] = 0;
     ram[0x1FFD] = 0;
@@ -22,11 +24,7 @@ sms::sms() {
     // Joypad inputs are pull down
     joypad1 = 0xFF;
     joypad2 = 0xFF;
-    joypadControl = 0xFF;
-    memoryControl = 0xFF;
-
-    // Set the region to PAL
-    gpu.region = 0;
+    joypadStart = 0xFF;
 }
 
 sms::~sms() {
@@ -36,6 +34,8 @@ sms::~sms() {
 }
 
 bool sms::loadRom(std::string romPath) {
+
+    // Load the contents of rom
     romSize = 0;
 
     std::fstream file(romPath, std::fstream::binary | std::fstream::in);
@@ -75,6 +75,7 @@ int sms::update(SDL_Renderer* renderer, SDL_AudioStream* stream) {
             throw std::runtime_error("INVALID OPCODE");
         } 
 
+        // Cycle the gpu device
         for(int i = 0; i < clock * 3 / 2; i ++) {
 
             if(gpu.cycle())
@@ -98,11 +99,8 @@ int sms::update(SDL_Renderer* renderer, SDL_AudioStream* stream) {
         samples[i] = audio.getSample();
     }
 
-    // Determine NTSC / PAL clock rate
-    int masterClock = (gpu.region & 1 == 0) ? 53693100 : 53203400;
-
     // Calculate the theoretical time(ms) to clear a VBlank 
-    int time = totalClock * 15 * 1000 / masterClock;
+    int time = totalClock * 15 * 1000 / getMasterClock();
 
     // Using time to determine format of the sample stream
     if(time > 0) {
@@ -207,12 +205,17 @@ void sms::mapper_write(uint16 addr, uint8 data) {
 uint8 sms::port_read(uint16 addr) {
     addr %= 256;
 
-    if(addr >= 0x00 && addr <= 0x3E && addr % 2 == 0) {
-        return memoryControl;
+    if(getDeviceType() == GAME_GEAR && addr == 0x00) {
+        return joypadStart;
+
+    }else if(addr >= 0x00 && addr <= 0x3E && addr % 2 == 0) {
+        // Memory control, unneeded
+        return 0xFF;
 
 
     }else if(addr >= 0x01 && addr <= 0x3F && addr % 2 == 1) {
-        return joypadControl;
+        // I/O Port Control, unneeded
+        return 0xFF;
 
 
     }else if(addr >= 0x40 && addr <= 0x7E && addr % 2 == 0) {
@@ -245,18 +248,11 @@ uint8 sms::port_read(uint16 addr) {
 void sms::port_write(uint16 addr, uint8 data) {
     addr %= 256;
 
-    // SDSC, debug console
-    if(addr == 0xFD) 
+    if(addr == 0xFD) {
+        // SDSC, debug console
         std::cout << (char)data;
 
-    if(addr >= 0x00 && addr <= 0x3E && addr % 2 == 0) {
-        memoryControl = data;
 
-
-    }else if(addr >= 0x01 && addr <= 0x3F && addr % 2 == 1) {
-        joypadControl = data;
-
-        
     }else if(addr >= 0x40 && addr <= 0x7F) {
         audio.write(data);
 
@@ -268,5 +264,74 @@ void sms::port_write(uint16 addr, uint8 data) {
     }else if(addr >= 0x81 && addr <= 0xBF && addr % 2 == 1) {
         gpu.writeControlPort(data);
 
+    }
+}
+
+int sms::getDeviceType() {
+
+    switch((rom[0x7fff] & 0b11110000) >> 4) {
+        case 0x3: return MASTER_SYSTEM_NTSC;
+        case 0x4: return MASTER_SYSTEM_PAL;
+        case 0x5: return GAME_GEAR;
+        case 0x6: return GAME_GEAR;
+        case 0x7: return GAME_GEAR;
+    }
+    return 0;
+}
+
+int sms::getMasterClock() {
+
+    switch(getDeviceType()) {
+
+        case MASTER_SYSTEM_NTSC: 
+        case GAME_GEAR:
+            return 53693100;
+
+        case MASTER_SYSTEM_PAL:
+            return 53203400;
+    }
+    return 1;
+}
+
+void sms::setJoyPadControl(uint8 control, bool val) {
+    uint8* ptr = NULL;
+    uint8 bit = 0;
+
+    switch(control) {
+
+        case Joypad_B_Down:     bit = 1 << 7; ptr = &joypad1; break;
+        case Joypad_B_Up:       bit = 1 << 6; ptr = &joypad1; break;
+        case Joypad_A_TR:       bit = 1 << 5; ptr = &joypad1; break;
+        case Joypad_A_TL:       bit = 1 << 4; ptr = &joypad1; break;
+        case Joypad_A_Right:    bit = 1 << 3; ptr = &joypad1; break;
+        case Joypad_A_Left:     bit = 1 << 2; ptr = &joypad1; break;
+        case Joypad_A_Down:     bit = 1 << 1; ptr = &joypad1; break;
+        case Joypad_A_Up:       bit = 1 << 0; ptr = &joypad1; break;
+
+        case Joypad_B_TH:       bit = 1 << 7; ptr = &joypad2; break;
+        case Joypad_A_TH:       bit = 1 << 6; ptr = &joypad2; break;
+        case Joypad_B_TR:       bit = 1 << 3; ptr = &joypad2; break;
+        case Joypad_B_TL:       bit = 1 << 2; ptr = &joypad2; break;
+        case Joypad_B_Right:    bit = 1 << 1; ptr = &joypad2; break;
+        case Joypad_B_Left:     bit = 1 << 0; ptr = &joypad2; break;
+
+        case Console_Reset:     
+        {
+            if(getDeviceType() == GAME_GEAR){
+                bit = 1 << 7;
+                ptr = &joypadStart;
+
+            }else {
+                if(!val) cpu.signalNMI();
+            }
+        }
+    }
+
+    // Toggle the bit and set the value
+    if(ptr) {
+        (*ptr) &= ~bit;
+
+        if(val)
+            (*ptr) |= bit;
     }
 }

@@ -76,29 +76,50 @@ int main(int argc, char* argv[]) {
             if(event.type == SDL_EVENT_KEY_DOWN) {
 
                 switch(event.key.scancode) {
-                    case SDL_SCANCODE_UP: emu.joypad1 &= ~(1 << 0); break;
-                    case SDL_SCANCODE_DOWN: emu.joypad1 &= ~(1 << 1); break;
-                    case SDL_SCANCODE_LEFT: emu.joypad1 &= ~(1 << 2); break;
-                    case SDL_SCANCODE_RIGHT: emu.joypad1 &= ~(1 << 3); break;
-                    case SDL_SCANCODE_Z: emu.joypad1 &= ~(1 << 4); break;
-                    case SDL_SCANCODE_X: emu.joypad1 &= ~(1 << 5); break;
-                    case SDL_SCANCODE_SPACE: std::cout << std::hex << (int)emu.cpu.programCounter << "\n"; break;
+                    case SDL_SCANCODE_UP:       emu.setJoyPadControl(sms::Joypad_A_Up, 0); break;
+                    case SDL_SCANCODE_DOWN:     emu.setJoyPadControl(sms::Joypad_A_Down, 0); break;
+                    case SDL_SCANCODE_LEFT:     emu.setJoyPadControl(sms::Joypad_A_Left, 0); break;
+                    case SDL_SCANCODE_RIGHT:    emu.setJoyPadControl(sms::Joypad_A_Right, 0); break;
+                    case SDL_SCANCODE_Z:        emu.setJoyPadControl(sms::Joypad_A_TL, 0); break;
+                    case SDL_SCANCODE_X:        emu.setJoyPadControl(sms::Joypad_A_TR, 0); break;
+                    case SDL_SCANCODE_SPACE:    std::cout << std::hex << (int)emu.cpu.programCounter << "\n"; break;
+                    case SDL_SCANCODE_RETURN:   emu.setJoyPadControl(sms::Console_Reset, 0); break;
                 }
             }
 
             if(event.type == SDL_EVENT_KEY_UP) {
 
                 switch(event.key.scancode) {
-                    case SDL_SCANCODE_UP: emu.joypad1 |= (1 << 0); break;
-                    case SDL_SCANCODE_DOWN: emu.joypad1 |= (1 << 1); break;
-                    case SDL_SCANCODE_LEFT: emu.joypad1 |= (1 << 2); break;
-                    case SDL_SCANCODE_RIGHT: emu.joypad1 |= (1 << 3); break;
-                    case SDL_SCANCODE_Z: emu.joypad1 |= (1 << 4); break;
-                    case SDL_SCANCODE_X: emu.joypad1 |= (1 << 5); break;
+                    case SDL_SCANCODE_UP:       emu.setJoyPadControl(sms::Joypad_A_Up, 1); break;
+                    case SDL_SCANCODE_DOWN:     emu.setJoyPadControl(sms::Joypad_A_Down, 1); break;
+                    case SDL_SCANCODE_LEFT:     emu.setJoyPadControl(sms::Joypad_A_Left, 1); break;
+                    case SDL_SCANCODE_RIGHT:    emu.setJoyPadControl(sms::Joypad_A_Right, 1); break;
+                    case SDL_SCANCODE_Z:        emu.setJoyPadControl(sms::Joypad_A_TL, 1); break;
+                    case SDL_SCANCODE_X:        emu.setJoyPadControl(sms::Joypad_A_TR, 1); break;
+                    case SDL_SCANCODE_RETURN:   emu.setJoyPadControl(sms::Console_Reset, 1); break;
                 }
             }
         }
 
+        // Resize the window based on the current device emulated
+        int w, h;
+        if(SDL_GetWindowSize(window, &w, &h)) {
+            w /= optionScreenScale;
+            h /= optionScreenScale;
+
+            if(w != emu.gpu.getScreenWidth() || h != emu.gpu.getScreenHeight()) {
+                SDL_SetWindowSize(window, emu.gpu.getScreenWidth() * optionScreenScale, emu.gpu.getScreenHeight() * optionScreenScale);
+                SDL_Rect viewport {
+                    -emu.gpu.getScreenOffsetX(),
+                    -emu.gpu.getScreenOffsetY(),
+                    emu.gpu.getScreenWidth() + emu.gpu.getScreenOffsetX(),
+                    emu.gpu.getScreenHeight() + emu.gpu.getScreenOffsetY()
+                };
+                SDL_SetRenderViewport(renderer, &viewport);
+            }
+        }
+
+        // Emulate a frame and sync with the time a real system would take
         int time = emu.update(renderer, stream);
 
         auto end = std::chrono::high_resolution_clock::now();

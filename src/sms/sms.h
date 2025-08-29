@@ -24,11 +24,27 @@ struct sms {
     uint8 ram[8 * 1024];
     uint8 sram[2][16 * 1024];
 
+    enum {
+        Joypad_B_Down,
+        Joypad_B_Up,
+        Joypad_A_TR,
+        Joypad_A_TL,
+        Joypad_A_Right,
+        Joypad_A_Left,
+        Joypad_A_Down,
+        Joypad_A_Up,
+        Joypad_B_TH,
+        Joypad_A_TH,
+        Console_Reset,
+        Joypad_B_TR,
+        Joypad_B_TL,
+        Joypad_B_Right,
+        Joypad_B_Left
+    };
     uint8 joypad1;
     uint8 joypad2;
-
-    uint8 joypadControl;
-    uint8 memoryControl;
+    uint8 joypadStart;
+    void setJoyPadControl(uint8 control, bool val);
 
     bool loadRom(std::string romPath);
 
@@ -49,6 +65,9 @@ struct sms {
     int update(SDL_Renderer* renderer, SDL_AudioStream* stream);
 
     void draw(SDL_Renderer* renderer);
+
+    int getDeviceType();
+    int getMasterClock();
 };
 
 #endif

@@ -11,15 +11,14 @@ void sms::draw(SDL_Renderer* renderer) {
                 (float)x, (float)y, 1.f, 1.f
             };
 
-            uint8 color = gpu.frameBuffer[x][y];
-            uint8 r = ((color & 0b00000011) >> 0) * 85;
-            uint8 g = ((color & 0b00001100) >> 2) * 85;
-            uint8 b = ((color & 0b00110000) >> 4) * 85;
+            int color = gpu.frameBuffer[x][y];
+            uint8 r = color >> 0;
+            uint8 g = color >> 8;
+            uint8 b = color >> 16;
 
             SDL_SetRenderDrawColor(renderer, r, g, b, 255);
             SDL_RenderRect(renderer, &rect);
         }
     }
-
     SDL_RenderPresent(renderer);
 }
