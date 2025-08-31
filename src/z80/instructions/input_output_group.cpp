@@ -58,10 +58,9 @@ int z80::processInputOutputGroup() {
                 */
                 case 0b01111000: case 0b01000000: case 0b01001000: case 0b01010000: case 0b01011000: case 0b01100000: case 0b01101000:
                 {
-                    uint16 ptr = pairBytes(reg[B], reg[C]);
                     uint8 rrr = (byte[1] & 0b00111000) >> 3;
 
-                    uint8 data = port_read(ptr);
+                    uint8 data = port_read(reg[C]);
                     write_rrrSymbol(rrr, data);
 
                     setFlag(Sign, data & 0b10000000);
@@ -84,7 +83,7 @@ int z80::processInputOutputGroup() {
                 {
                     uint16 ptr = pairBytes(reg[H], reg[L]);
 
-                    uint8 data = port_read(pairBytes(reg[B], reg[C]));
+                    uint8 data = port_read(reg[C]);
                     mapper_write(ptr, data);
 
                     // Decrement B
@@ -113,7 +112,7 @@ int z80::processInputOutputGroup() {
                 {
                     uint16 ptr = pairBytes(reg[H], reg[L]);
 
-                    uint8 data = port_read(pairBytes(reg[B], reg[C]));
+                    uint8 data = port_read(reg[C]);
                     mapper_write(ptr, data);
 
                     // Decrement B
@@ -147,7 +146,7 @@ int z80::processInputOutputGroup() {
                 {
                     uint16 ptr = pairBytes(reg[H], reg[L]);
 
-                    uint8 data = port_read(pairBytes(reg[B], reg[C]));
+                    uint8 data = port_read(reg[C]);
                     mapper_write(ptr, data);
 
                     // Decrement B
@@ -176,7 +175,7 @@ int z80::processInputOutputGroup() {
                 {
                     uint16 ptr = pairBytes(reg[H], reg[L]);
 
-                    uint8 data = port_read(pairBytes(reg[B], reg[C]));
+                    uint8 data = port_read(reg[C]);
                     mapper_write(ptr, data);
 
                     // Decrement B
@@ -208,11 +207,10 @@ int z80::processInputOutputGroup() {
                 */
                 case 0b01111001: case 0b01000001: case 0b01001001: case 0b01010001: case 0b01011001: case 0b01100001: case 0b01101001:
                 {
-                    uint16 ptr = pairBytes(reg[B], reg[C]);
                     int rrr = (byte[1] & 0b00111000) >> 3;
 
                     uint8 data = read_rrrSymbol(rrr);
-                    port_write(ptr, data);
+                    port_write(reg[C], data);
 
                     programCounter += 2;
 
@@ -228,10 +226,9 @@ int z80::processInputOutputGroup() {
                 case 0b10100011:
                 {
                     uint16 localPtr = pairBytes(reg[H], reg[L]);
-                    uint16 outPtr = pairBytes(reg[B], reg[C]);
 
                     uint8 data = mapper_read(localPtr);
-                    port_write(outPtr, data);
+                    port_write(reg[C], data);
 
                     // Decrement B
                     reg[B] = reg[B] - 1;
@@ -258,10 +255,9 @@ int z80::processInputOutputGroup() {
                 case 0b10110011:
                 {
                     uint16 localPtr = pairBytes(reg[H], reg[L]);
-                    uint16 outPtr = pairBytes(reg[B], reg[C]);
 
                     uint8 data = mapper_read(localPtr);
-                    port_write(outPtr, data);
+                    port_write(reg[C], data);
 
                     // Decrement B
                     reg[B] = reg[B] - 1;
@@ -293,10 +289,9 @@ int z80::processInputOutputGroup() {
                 case 0b10101011:
                 {
                     uint16 localPtr = pairBytes(reg[H], reg[L]);
-                    uint16 outPtr = pairBytes(reg[B], reg[C]);
 
                     uint8 data = mapper_read(localPtr);
-                    port_write(outPtr, data);
+                    port_write(reg[C], data);
 
                     // Decrement B
                     reg[B] = reg[B] - 1;
@@ -323,10 +318,9 @@ int z80::processInputOutputGroup() {
                 case 0b10111011:
                 {
                     uint16 localPtr = pairBytes(reg[H], reg[L]);
-                    uint16 outPtr = pairBytes(reg[B], reg[C]);
 
                     uint8 data = mapper_read(localPtr);
-                    port_write(outPtr, data);
+                    port_write(reg[C], data);
 
                     // Decrement B
                     reg[B] = reg[B] - 1;
