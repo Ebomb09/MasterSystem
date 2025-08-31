@@ -4,9 +4,11 @@ void sms::draw(SDL_Renderer* renderer) {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
-    for(int x = 0; x < 256; x ++) {
+    int limitX = gpu.getScreenWidth() + gpu.getScreenOffsetX();
+    int limitY = gpu.getScreenHeight() + gpu.getScreenOffsetY();
 
-        for(int y = 0; y < 192; y ++) {
+    for(int x = gpu.getScreenOffsetX(); x < limitX; x ++) {
+        for(int y = gpu.getScreenOffsetY(); y < limitY; y ++) {
             SDL_FRect rect {
                 (float)x, (float)y, 1.f, 1.f
             };
@@ -20,5 +22,6 @@ void sms::draw(SDL_Renderer* renderer) {
             SDL_RenderRect(renderer, &rect);
         }
     }
+
     SDL_RenderPresent(renderer);
 }

@@ -66,6 +66,7 @@ struct sms {
 
     void draw(SDL_Renderer* renderer);
 
+    int romHeader;
     int getDeviceType();
     int getMasterClock();
 };

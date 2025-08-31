@@ -448,6 +448,8 @@ void vdp::drawTilemap(bool drawPriority) {
     // Base address
     uint16 addr = getNameTableBaseAddress();
 
+    uint16 tileMapHeight = (getActiveDisplayHeight() == 192) ? 28*8 : 32*8;
+
     int x = 0, y = 0;
 
     uint8 scrollX = reg[0x8];
@@ -483,6 +485,13 @@ void vdp::drawTilemap(bool drawPriority) {
 
             if(priority == drawPriority)
                 drawTile(tileIndex, pos_x, pos_y, horizontalFlip, verticalFlip, spritePalette, false, true);
+        }
+
+        // Check wrap around as well
+        if(pos_y+8 >= tileMapHeight && pos_y-tileMapHeight <= vCounter && vCounter < pos_y-tileMapHeight+8) {
+
+            if(priority == drawPriority)
+                drawTile(tileIndex, pos_x, pos_y-tileMapHeight, horizontalFlip, verticalFlip, spritePalette, false, true);
         }
 
         x += 8;

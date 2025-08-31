@@ -4,6 +4,7 @@
 #include <fstream>
 #include <functional>
 #include <cmath>
+#include <bitset>
 
 sms::sms() {
     using namespace std::placeholders;
@@ -52,6 +53,31 @@ bool sms::loadRom(std::string romPath) {
     file.read((char*)rom, romSize);
 
     file.close();
+
+    // Check possible locations for trademark
+    romHeader = -1;
+
+    if(romSize >= 0x8000) {
+        std::string tm((char*)(&rom[0x7ff0]), 8);
+
+        if(tm == "TMR SEGA")
+            romHeader = 0x7ff0;
+    }
+
+    if(romSize >= 0x4000) {
+        std::string tm((char*)(&rom[0x3FF0]), 8);
+
+        if(tm == "TMR SEGA")
+            romHeader = 0x3FF0;
+    }
+
+    if(romSize >= 0x2000) {
+        std::string tm((char*)(&rom[0x1FF0]), 8);
+
+        if(tm == "TMR SEGA")
+            romHeader = 0x1FF0;
+    }
+
     return true;
 }
 
@@ -248,6 +274,9 @@ uint8 sms::port_read(uint16 addr) {
 void sms::port_write(uint16 addr, uint8 data) {
     addr %= 256;
 
+    if(addr == 0x3E)
+        std::cout << (int)data << "\n";
+
     if(addr == 0xFD) {
         // SDSC, debug console
         std::cout << (char)data;
@@ -269,14 +298,17 @@ void sms::port_write(uint16 addr, uint8 data) {
 
 int sms::getDeviceType() {
 
-    switch((rom[0x7fff] & 0b11110000) >> 4) {
+    if(romHeader == -1)
+        return MASTER_SYSTEM_NTSC;
+
+    switch((rom[romHeader+15] & 0b11110000) >> 4) {
         case 0x3: return MASTER_SYSTEM_NTSC;
         case 0x4: return MASTER_SYSTEM_PAL;
         case 0x5: return GAME_GEAR;
         case 0x6: return GAME_GEAR;
         case 0x7: return GAME_GEAR;
     }
-    return 0;
+    return MASTER_SYSTEM_NTSC;
 }
 
 int sms::getMasterClock() {
