@@ -17,10 +17,10 @@ sms::sms() {
     gpu.getDeviceType = std::bind(sms::getDeviceType, this);
 
     // Initialize the slot indices
-    ram[0x1FFC] = 0;
-    ram[0x1FFD] = 0;
-    ram[0x1FFE] = 1;
-    ram[0x1FFF] = 2;
+    mapperOptions = 0;
+    mapperBankSelect[0] = 0;
+    mapperBankSelect[1] = 1;
+    mapperBankSelect[2] = 2;
 
     // Joypad inputs are pull down
     joypad1 = 0xFF;
@@ -143,18 +143,6 @@ int sms::update(SDL_Renderer* renderer, SDL_AudioStream* stream) {
 }
 
 uint8 sms::mapper_read(uint16 addr) {
-    uint8 options = ram[0x1FFC];
-    uint8 slot0 = ram[0x1FFD];
-    uint8 slot1 = ram[0x1FFE];
-    uint8 slot2 = ram[0x1FFF];
-
-    enum {
-        BankShift               = 0b00000011,
-        RAMBankSelect           = 0b00000100,
-        RAMEnableSlot2          = 0b00001000,
-        RAMEnableSlotMirror     = 0b00010000,
-        ROMEnableWrite          = 0b10000000
-    };
 
     // First 1kb is always the first 1kb of rom
     if(0x0000 <= addr && addr <= 0x03ff) {
@@ -162,69 +150,122 @@ uint8 sms::mapper_read(uint16 addr) {
 
     // Slot0 of 16kb rom
     }else if(0x0400 <= addr && addr <= 0x3fff) {
-        return rom[(slot0 * 16*1024 + addr) % romSize];
+        return rom[(mapperBankSelect[0] * 16*1024 + addr) % romSize];
 
     // Slot1 of 16kb rom
     }else if(0x4000 <= addr && addr <= 0x7fff) {
-        return rom[(slot1 * 16*1024 + addr - 0x4000) % romSize]; 
+        return rom[(mapperBankSelect[1] * 16*1024 + addr - 0x4000) % romSize]; 
     
     // Slot2 of 16kb rom/ram
     }else if(0x8000 <= addr && addr <= 0xbfff) {
         
-        if(options & RAMEnableSlot2)
-            return sram[(options & RAMBankSelect) >> 2][addr - 0x8000];
+        if(mapperOptions & SRAM_EnableSlot2) {
+            return sram[(mapperOptions & SRAM_BankSelect) >> 2][addr - 0x8000];
 
-        return rom[(slot2 * 16*1024 + addr - 0x8000) % romSize]; 
-    
+        }else {
+            return rom[(mapperBankSelect[2] * 16*1024 + addr - 0x8000) % romSize]; 
+        }
+
     // System RAM
     }else if(0xc000 <= addr && addr <= 0xdfff) {
-        return ram[addr - 0xc000];
+
+        if(mapperOptions & SRAM_EnableRAM) {
+            return sram[(mapperOptions & SRAM_BankSelect) >> 2][addr - 0xc000];
+
+        }else {
+            return ram[addr - 0xc000];
+        }
 
     // System mirrored RAM
-    }else {
-        return ram[addr - 0xe000];
+    }else if(0xe000 <= addr && addr <= 0xfffb) {
+
+        if(mapperOptions & SRAM_EnableRAM) {
+            return sram[(mapperOptions & SRAM_BankSelect) >> 2][addr - 0xc000];
+
+        }else {
+            return ram[addr - 0xe000];
+        }
+
+    // Mapper Options
+    }else if(addr == 0xfffc) {
+        return mapperOptions;
+
+    // Mapper Bank Selects
+    }else if(0xfffd <= addr && addr <= 0xffff) {
+        return mapperBankSelect[addr - 0xfffd];
     }
+
+    // Error if reached this point
+    return 0;
 }
 
 void sms::mapper_write(uint16 addr, uint8 data) {
-    uint8 options = ram[0x1FFC];
-    uint8 slot0 = ram[0x1FFD];
-    uint8 slot1 = ram[0x1FFE];
-    uint8 slot2 = ram[0x1FFF];
-
-    enum {
-        BankShift               = 0b00000011,
-        RAMBankSelect           = 0b00000100,
-        RAMEnableSlot2          = 0b00001000,
-        RAMEnableSlotMirror     = 0b00010000,
-        ROMEnableWrite          = 0b10000000
-    };
 
     // First 1kb is always the first 1kb of rom
     if(0x0000 <= addr && addr <= 0x03ff) {
-        //cannot write to rom
+
+        if(mapperOptions & ROM_EnableWrite) {
+            rom[addr] = data;
+        }
 
     // Slot0 of 16kb rom
     }else if(0x0400 <= addr && addr <= 0x3fff) {
-        // Cannot write to rom
+        
+        if(mapperOptions & ROM_EnableWrite) {
+            rom[(mapperBankSelect[0] * 16*1024 + addr) % romSize] = data;
+        }
 
     // Slot1 of 16kb rom
     }else if(0x4000 <= addr && addr <= 0x7fff) {
-        // Cannot write to rom 
+
+        if(mapperOptions & ROM_EnableWrite) {
+            rom[(mapperBankSelect[1] * 16*1024 + addr - 0x4000) % romSize] = data;
+        }
     
     // Slot2 of 16kb rom/ram
     }else if(0x8000 <= addr && addr <= 0xbfff) {
         
-        if(options & RAMEnableSlot2) 
-            sram[(options & RAMBankSelect) >> 2][addr - 0x8000] = data;
-    
+        if(mapperOptions & SRAM_EnableSlot2) {
+            sram[(mapperOptions & SRAM_BankSelect) >> 2][addr - 0x8000] = data;
+
+        }else if(mapperOptions & ROM_EnableWrite) {
+            rom[(mapperBankSelect[2] * 16*1024 + addr - 0x8000) % romSize] = data; 
+        }
+
     // System RAM
     }else if(0xc000 <= addr && addr <= 0xdfff) {
-        ram[addr - 0xc000] = data;
 
+        if(mapperOptions & SRAM_EnableRAM) {
+            sram[(mapperOptions & SRAM_BankSelect) >> 2][addr - 0xc000] = data;
+
+        }else {
+            ram[addr - 0xc000] = data;
+        }
+        
     // System mirrored RAM
-    }else {
-        ram[addr - 0xe000] = data;
+    }else if(0xe000 <= addr && addr <= 0xfffb) {
+
+        if(mapperOptions & SRAM_EnableRAM) {
+            sram[(mapperOptions & SRAM_BankSelect) >> 2][addr - 0xc000] = data;
+
+        }else {
+            ram[addr - 0xe000] = data;
+        }
+        
+    // Mapper Options
+    }else if(addr == 0xfffc) {
+        mapperOptions = data;
+
+    // Mapper Bank Selects
+    }else if(0xfffd <= addr && addr <= 0xffff) {
+        uint8 shift = 0;
+
+        switch(mapperOptions & ROM_BankShift) {
+            case 1: shift = 24; break;
+            case 2: shift = 16; break;
+            case 3: shift = 8; break;
+        }
+        mapperBankSelect[addr - 0xfffd] = data + shift;
     }
 }
 
@@ -273,9 +314,6 @@ uint8 sms::port_read(uint16 addr) {
 
 void sms::port_write(uint16 addr, uint8 data) {
     addr %= 256;
-
-    if(addr == 0x3E)
-        std::cout << (int)data << "\n";
 
     if(addr == 0xFD) {
         // SDSC, debug console

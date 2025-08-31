@@ -48,6 +48,16 @@ struct sms {
 
     bool loadRom(std::string romPath);
 
+
+    enum MapperFlags {
+        ROM_BankShift           = 0b00000011,
+        SRAM_BankSelect         = 0b00000100,
+        SRAM_EnableSlot2        = 0b00001000,
+        SRAM_EnableRAM          = 0b00010000,
+        ROM_EnableWrite         = 0b10000000
+    };
+    uint8 mapperOptions;
+    uint8 mapperBankSelect[3];
     uint8 mapper_read(uint16 addr);
     void mapper_write(uint16 addr, uint8 data);
 
