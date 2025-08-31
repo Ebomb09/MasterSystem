@@ -4,8 +4,6 @@
 
 z80::z80() {
     programCounter = 0;
-    reg[A] = 0xFF;
-    reg[F] = 0xFF;
     interruptMode = 0;
     interruptVector = 0;
     memoryRefresh = 0;
@@ -17,63 +15,35 @@ z80::z80() {
 
 int z80::cycle() {
 
-    switch(eiState) {
-
-        // Process the next instruction after an EI
-        case EI_WAIT:
-        {
-            eiState = EI_GOOD;
-            break;
-        }
-
-        // After that instruction set IFF's to actually renable interrupts
-        case EI_GOOD:
-        {
-            eiState = EI_NONE;
-            IFF1 = 1;
-            IFF2 = 1;
-            break;
-        }
+    // Process the next instruction after an EI
+    if(eiState == EI_WAIT) {
+        eiState = EI_GOOD;
     }
 
     std::clog << std::hex << (int)programCounter << ": ";
 
     int res = 0;
     
-    res = process8BitLoadGroup();
-    if(res > 0) return res;
+    if(res == 0) res = process8BitLoadGroup();
+    if(res == 0) res = process16BitLoadGroup();
+    if(res == 0) res = processExchangeSearchGroup();
+    if(res == 0) res = processGeneralArithmeticGroup();
+    if(res == 0) res = process8BitArithmeticGroup();
+    if(res == 0) res = process16BitArithmeticGroup();
+    if(res == 0) res = processRotateShiftGroup();
+    if(res == 0) res = processBitSetResetTest();
+    if(res == 0) res = processJumpGroup();
+    if(res == 0) res = processCallReturnGroup();
+    if(res == 0) res = processInputOutputGroup();
 
-    res = process16BitLoadGroup();
-    if(res > 0) return res;
+    // Processed the instruction, reenable interrupts
+    if(eiState == EI_GOOD) {
+        eiState = EI_NONE;
+        IFF1 = 1;
+        IFF2 = 1;
+    }
 
-    res = processExchangeSearchGroup();
-    if(res > 0) return res;
-
-    res = processGeneralArithmeticGroup();
-    if(res > 0) return res;
-
-    res = process8BitArithmeticGroup();
-    if(res > 0) return res;
-
-    res = process16BitArithmeticGroup();
-    if(res > 0) return res;
-
-    res = processRotateShiftGroup();
-    if(res > 0) return res;
-
-    res = processBitSetResetTest();
-    if(res > 0) return res;
-
-    res = processJumpGroup();
-    if(res > 0) return res;
-
-    res = processCallReturnGroup();
-    if(res > 0) return res;
-
-    res = processInputOutputGroup();
-    if(res > 0) return res;
-
-    return 0;
+    return res;
 }
 
 void z80::signalNMI() {

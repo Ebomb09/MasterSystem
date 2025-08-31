@@ -173,7 +173,6 @@ int z80::processGeneralArithmeticGroup() {
         case 0b11111011:
         {
             incrementPC(1);
-            // Set IFF's after the next instruction
             eiState = EI_WAIT;
             std::clog << "EI\n";
             return 4;
