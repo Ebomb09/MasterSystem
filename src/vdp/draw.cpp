@@ -203,7 +203,7 @@ void vdp::drawSprites() {
             // Sprite collision
             if((status & SpriteCollision) == 0) {
 
-                for(int j = x; j < x+size; j ++) {
+                for(int j = x; j < x+size && x+size < 256; j ++) {
 
                     if(!empty[j]) {
                         status |= SpriteCollision;
