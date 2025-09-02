@@ -1,10 +1,11 @@
-#include "../z80.h"
+#include "z80/z80.h"
+#include "common/utilities.h"
 #include <iostream>
 #include <bitset>
 
 int z80::process8BitArithmeticGroup() {
 
-    uint8 byte[4] {
+    uint8_t byte[4] {
         mapper_read(programCounter),
         mapper_read(programCounter+1),
         mapper_read(programCounter+2),
@@ -20,7 +21,7 @@ int z80::process8BitArithmeticGroup() {
         case 0b10000111: case 0b10000000: case 0b10000001: case 0b10000010: case 0b10000011: case 0b10000100: case 0b10000101:
         {
             incrementPC(1);
-            uint8 rrr = byte[0] & 0b00000111;
+            uint8_t rrr = byte[0] & 0b00000111;
             ADD(reg[A], read_rrrSymbol(rrr));
             std::clog << "ADD A, " << name_rrrSymbol(rrr) << "\n";
             return 4;
@@ -34,7 +35,7 @@ int z80::process8BitArithmeticGroup() {
         case 0b10010111: case 0b10010000: case 0b10010001: case 0b10010010: case 0b10010011: case 0b10010100: case 0b10010101:
         {
             incrementPC(1);
-            uint8 rrr = byte[0] & 0b00000111;
+            uint8_t rrr = byte[0] & 0b00000111;
             SUB(reg[A], read_rrrSymbol(rrr));
             std::clog << "SUB A, " << name_rrrSymbol(rrr) << "\n";
             return 4;
@@ -48,7 +49,7 @@ int z80::process8BitArithmeticGroup() {
         case 0b10100111: case 0b10100000: case 0b10100001: case 0b10100010: case 0b10100011: case 0b10100100: case 0b10100101:
         {
             incrementPC(1);
-            uint8 rrr = byte[0] & 0b00000111;
+            uint8_t rrr = byte[0] & 0b00000111;
             AND(reg[A], read_rrrSymbol(rrr));
             std::clog << "AND A, " << name_rrrSymbol(rrr) << "\n";
             return 4;
@@ -62,7 +63,7 @@ int z80::process8BitArithmeticGroup() {
         case 0b10110111: case 0b10110000: case 0b10110001: case 0b10110010: case 0b10110011: case 0b10110100: case 0b10110101:
         {
             incrementPC(1);
-            uint8 rrr = byte[0] & 0b00000111;
+            uint8_t rrr = byte[0] & 0b00000111;
             OR(reg[A], read_rrrSymbol(rrr));
             std::clog << "OR A, " << name_rrrSymbol(rrr) << "\n";
             return 4;
@@ -76,7 +77,7 @@ int z80::process8BitArithmeticGroup() {
         case 0b10101111: case 0b10101000: case 0b10101001: case 0b10101010: case 0b10101011: case 0b10101100: case 0b10101101:
         {
             incrementPC(1);
-            uint8 rrr = byte[0] & 0b00000111;
+            uint8_t rrr = byte[0] & 0b00000111;
             XOR(reg[A], read_rrrSymbol(rrr));
             std::clog << "XOR A, " << name_rrrSymbol(rrr) << "\n";
             return 4;
@@ -90,7 +91,7 @@ int z80::process8BitArithmeticGroup() {
         case 0b10111111: case 0b10111000: case 0b10111001: case 0b10111010: case 0b10111011: case 0b10111100: case 0b10111101:
         {
             incrementPC(1);
-            uint8 rrr = byte[0] & 0b00000111;
+            uint8_t rrr = byte[0] & 0b00000111;
             CP(reg[A], read_rrrSymbol(rrr));
             std::clog << "CP A, " << name_rrrSymbol(rrr) << "\n";
             return 4;
@@ -104,8 +105,8 @@ int z80::process8BitArithmeticGroup() {
         case 0b00111100: case 0b00000100: case 0b00001100: case 0b00010100: case 0b00011100: case 0b00100100: case 0b00101100:
         {
             incrementPC(1);
-            uint8 rrr = (byte[0] & 0b00111000) >> 3;
-            uint8 data = read_rrrSymbol(rrr);
+            uint8_t rrr = (byte[0] & 0b00111000) >> 3;
+            uint8_t data = read_rrrSymbol(rrr);
             INC(data);
             write_rrrSymbol(rrr, data);
             std::clog << "INC " << name_rrrSymbol(rrr) << "\n";
@@ -120,8 +121,8 @@ int z80::process8BitArithmeticGroup() {
         case 0b00111101: case 0b00000101: case 0b00001101: case 0b00010101: case 0b00011101: case 0b00100101: case 0b00101101:
         {
             incrementPC(1);
-            uint8 rrr = (byte[0] & 0b00111000) >> 3;
-            uint8 data = read_rrrSymbol(rrr);
+            uint8_t rrr = (byte[0] & 0b00111000) >> 3;
+            uint8_t data = read_rrrSymbol(rrr);
             DEC(data);
             write_rrrSymbol(rrr, data);
             std::clog << "DEC " << name_rrrSymbol(rrr) << "\n";
@@ -220,7 +221,7 @@ int z80::process8BitArithmeticGroup() {
         case 0b10000110:
         {
             incrementPC(1);
-            uint8 data = mapper_read(pairBytes(reg[H], reg[L]));
+            uint8_t data = mapper_read(pairBytes(reg[H], reg[L]));
             ADD(reg[A], data);
             std::clog << "ADD A, (HL)\n";
             return 7;
@@ -234,7 +235,7 @@ int z80::process8BitArithmeticGroup() {
         case 0b10010110:
         {
             incrementPC(1);
-            uint8 data = mapper_read(pairBytes(reg[H], reg[L]));
+            uint8_t data = mapper_read(pairBytes(reg[H], reg[L]));
             SUB(reg[A], data);
             std::clog << "SUB A, (HL)\n";
             return 7;
@@ -248,7 +249,7 @@ int z80::process8BitArithmeticGroup() {
         case 0b10100110:
         {
             incrementPC(1);
-            uint8 data = mapper_read(pairBytes(reg[H], reg[L]));
+            uint8_t data = mapper_read(pairBytes(reg[H], reg[L]));
             AND(reg[A], data);
             std::clog << "AND A, (HL)\n";
             return 7;
@@ -262,7 +263,7 @@ int z80::process8BitArithmeticGroup() {
         case 0b10110110:
         {
             incrementPC(1);
-            uint8 data = mapper_read(pairBytes(reg[H], reg[L]));
+            uint8_t data = mapper_read(pairBytes(reg[H], reg[L]));
             OR(reg[A], data);
             std::clog << "OR A, (HL)\n";
             return 7;
@@ -276,7 +277,7 @@ int z80::process8BitArithmeticGroup() {
         case 0b10101110:
         {
             incrementPC(1);
-            uint8 data = mapper_read(pairBytes(reg[H], reg[L]));
+            uint8_t data = mapper_read(pairBytes(reg[H], reg[L]));
             XOR(reg[A], data);
             std::clog << "XOR A, (HL)\n";
             return 7;
@@ -290,7 +291,7 @@ int z80::process8BitArithmeticGroup() {
         case 0b10111110:
         {
             incrementPC(1);
-            uint8 data = mapper_read(pairBytes(reg[H], reg[L]));
+            uint8_t data = mapper_read(pairBytes(reg[H], reg[L]));
             CP(reg[A], data);
             std::clog << "CP A, (HL)\n";
             return 7;
@@ -304,7 +305,7 @@ int z80::process8BitArithmeticGroup() {
         case 0b00110100:
         {
             incrementPC(1);
-            uint8 data = mapper_read(pairBytes(reg[H], reg[L]));
+            uint8_t data = mapper_read(pairBytes(reg[H], reg[L]));
             INC(data);
             mapper_write(pairBytes(reg[H], reg[L]), data);
             std::clog << "INC (HL)\n";
@@ -319,7 +320,7 @@ int z80::process8BitArithmeticGroup() {
         case 0b00110101:
         {
             incrementPC(1);
-            uint8 data = mapper_read(pairBytes(reg[H], reg[L]));
+            uint8_t data = mapper_read(pairBytes(reg[H], reg[L]));
             DEC(data);
             mapper_write(pairBytes(reg[H], reg[L]), data);
             std::clog << "DEC (HL)\n";
@@ -334,7 +335,7 @@ int z80::process8BitArithmeticGroup() {
         case 0b10001111:  case 0b10001000:  case 0b10001001:  case 0b10001010:  case 0b10001011:  case 0b10001100:  case 0b10001101:
         {
             incrementPC(1);
-            uint8 rrr = byte[0] & 0b00000111;
+            uint8_t rrr = byte[0] & 0b00000111;
             ADC(reg[A], read_rrrSymbol(rrr));
             std::clog << "ADC A, " << name_rrrSymbol(rrr) << "\n";
             return 4;
@@ -348,7 +349,7 @@ int z80::process8BitArithmeticGroup() {
         case 0b10011111:  case 0b10011000:  case 0b10011001:  case 0b10011010:  case 0b10011011:  case 0b10011100:  case 0b10011101:
         {
             incrementPC(1);
-            uint8 rrr = byte[0] & 0b00000111;
+            uint8_t rrr = byte[0] & 0b00000111;
             SBC(reg[A], read_rrrSymbol(rrr));
             std::clog << "SBC A, " << name_rrrSymbol(rrr) << "\n";
             return 4;
@@ -390,7 +391,7 @@ int z80::process8BitArithmeticGroup() {
         case 0b10001110:
         {
             incrementPC(1);
-            uint16 addr = pairBytes(reg[H], reg[L]);
+            uint16_t addr = pairBytes(reg[H], reg[L]);
             ADC(reg[A], mapper_read(addr));
             std::clog << "ADC A, (HL)\n";
             return 7;
@@ -404,7 +405,7 @@ int z80::process8BitArithmeticGroup() {
         case 0b10011110:
         {
             incrementPC(1);
-            uint16 addr = pairBytes(reg[H], reg[L]);
+            uint16_t addr = pairBytes(reg[H], reg[L]);
             SBC(reg[A], mapper_read(addr));
             std::clog << "SBC A, (HL)\n";
             return 7;
@@ -419,7 +420,7 @@ int z80::process8BitArithmeticGroup() {
         */
         case 0b11011101: case 0b11111101:
         {
-            uint16& index = (byte[0] == 0b11011101) ? indexRegisterX : indexRegisterY;
+            uint16_t& index = (byte[0] == 0b11011101) ? indexRegisterX : indexRegisterY;
 
             switch(byte[1]) {
 
@@ -431,9 +432,9 @@ int z80::process8BitArithmeticGroup() {
                 case 0b10000110:
                 {
                     incrementPC(3);
-                    uint16 addr = index + (sint8)byte[2];
+                    uint16_t addr = index + (int8_t)byte[2];
                     ADD(reg[A], mapper_read(addr));
-                    std::clog << "ADD A, (IX+" << std::hex << (sint8)byte[2] << ")\n";
+                    std::clog << "ADD A, (IX+" << std::hex << (int8_t)byte[2] << ")\n";
                     return 19;
                 }
 
@@ -446,9 +447,9 @@ int z80::process8BitArithmeticGroup() {
                 case 0b10010110:
                 {
                     incrementPC(3);
-                    uint16 addr = index + (sint8)byte[2];
+                    uint16_t addr = index + (int8_t)byte[2];
                     SUB(reg[A], mapper_read(addr));
-                    std::clog << "SUB A, (IX+" << std::hex << (sint8)byte[2] << ")\n";
+                    std::clog << "SUB A, (IX+" << std::hex << (int8_t)byte[2] << ")\n";
                     return 19;
                 }
 
@@ -461,9 +462,9 @@ int z80::process8BitArithmeticGroup() {
                 case 0b10001110:
                 {
                     incrementPC(3);
-                    uint16 addr = index + (sint8)byte[2];
+                    uint16_t addr = index + (int8_t)byte[2];
                     ADC(reg[A], mapper_read(addr));
-                    std::clog << "ADC A, (IX+" << std::hex << (sint8)byte[2] << ")\n";
+                    std::clog << "ADC A, (IX+" << std::hex << (int8_t)byte[2] << ")\n";
                     return 19;
                 }
 
@@ -476,9 +477,9 @@ int z80::process8BitArithmeticGroup() {
                 case 0b10011110:
                 {
                     incrementPC(3);
-                    uint16 addr = index + (sint8)byte[2];
+                    uint16_t addr = index + (int8_t)byte[2];
                     SBC(reg[A], mapper_read(addr));
-                    std::clog << "SBC A, (IX+" << std::hex << (sint8)byte[2] << ")\n";
+                    std::clog << "SBC A, (IX+" << std::hex << (int8_t)byte[2] << ")\n";
                     return 19;
                 }
 
@@ -491,9 +492,9 @@ int z80::process8BitArithmeticGroup() {
                 case 0b10100110:
                 {
                     incrementPC(3);
-                    uint16 addr = index + (sint8)byte[2];
+                    uint16_t addr = index + (int8_t)byte[2];
                     AND(reg[A], mapper_read(addr));
-                    std::clog << "AND A, (IX+" << std::hex << (sint8)byte[2] << ")\n";
+                    std::clog << "AND A, (IX+" << std::hex << (int8_t)byte[2] << ")\n";
                     return 19;
                 }
 
@@ -506,9 +507,9 @@ int z80::process8BitArithmeticGroup() {
                 case 0b10110110:
                 {
                     incrementPC(3);
-                    uint16 addr = index + (sint8)byte[2];
+                    uint16_t addr = index + (int8_t)byte[2];
                     OR(reg[A], mapper_read(addr));
-                    std::clog << "OR A, (IX+" << std::hex << (sint8)byte[2] << ")\n";
+                    std::clog << "OR A, (IX+" << std::hex << (int8_t)byte[2] << ")\n";
                     return 19;
                 }
 
@@ -521,9 +522,9 @@ int z80::process8BitArithmeticGroup() {
                 case 0b10101110:
                 {
                     incrementPC(3);
-                    uint16 addr = index + (sint8)byte[2];
+                    uint16_t addr = index + (int8_t)byte[2];
                     XOR(reg[A], mapper_read(addr));
-                    std::clog << "XOR A, (IX+" << std::hex << (sint8)byte[2] << ")\n";
+                    std::clog << "XOR A, (IX+" << std::hex << (int8_t)byte[2] << ")\n";
                     return 19;
                 }
 
@@ -536,9 +537,9 @@ int z80::process8BitArithmeticGroup() {
                 case 0b10111110:
                 {
                     incrementPC(3);
-                    uint16 addr = index + (sint8)byte[2];
+                    uint16_t addr = index + (int8_t)byte[2];
                     CP(reg[A], mapper_read(addr));
-                    std::clog << "CP A, (IX+" << std::hex << (sint8)byte[2] << ")\n";
+                    std::clog << "CP A, (IX+" << std::hex << (int8_t)byte[2] << ")\n";
                     return 19;
                 }
 
@@ -551,11 +552,11 @@ int z80::process8BitArithmeticGroup() {
                 case 0b00110100:
                 {
                     incrementPC(3);
-                    uint16 addr = index + (sint8)byte[2];
-                    uint8 data = mapper_read(addr);
+                    uint16_t addr = index + (int8_t)byte[2];
+                    uint8_t data = mapper_read(addr);
                     INC(data);
                     mapper_write(addr, data);
-                    std::clog << "INC (IX+" << std::hex << (sint8)byte[2] << ")\n";
+                    std::clog << "INC (IX+" << std::hex << (int8_t)byte[2] << ")\n";
                     return 23;
                 }
 
@@ -568,11 +569,11 @@ int z80::process8BitArithmeticGroup() {
                 case 0b00110101:
                 {
                     incrementPC(3);
-                    uint16 addr = index + (sint8)byte[2];
-                    uint8 data = mapper_read(addr);
+                    uint16_t addr = index + (int8_t)byte[2];
+                    uint8_t data = mapper_read(addr);
                     DEC(data);
                     mapper_write(addr, data);
-                    std::clog << "INC (IX+" << std::hex << (sint8)byte[2] << ")\n";
+                    std::clog << "INC (IX+" << std::hex << (int8_t)byte[2] << ")\n";
                     return 23;
                 }
 
@@ -585,7 +586,7 @@ int z80::process8BitArithmeticGroup() {
                 {
                     incrementPC(2);
 
-                    uint8 data = index;
+                    uint8_t data = index;
                     if(byte[1] & 0b00001000)    data = index;
                     else                        data = index >> 8; 
 
@@ -607,7 +608,7 @@ int z80::process8BitArithmeticGroup() {
                 {
                     incrementPC(2);
 
-                    uint8 data = index;
+                    uint8_t data = index;
                     if(byte[1] & 0b00001000)    data = index;
                     else                        data = index >> 8; 
 
@@ -629,7 +630,7 @@ int z80::process8BitArithmeticGroup() {
                 {
                     incrementPC(2);
 
-                    uint8 data;
+                    uint8_t data;
                     if(byte[1] & 0b00000001) data = index;
                     else                     data = index >> 8;
 
@@ -647,7 +648,7 @@ int z80::process8BitArithmeticGroup() {
                 {
                     incrementPC(2);
 
-                    uint8 data;
+                    uint8_t data;
                     if(byte[1] & 0b00000001) data = index;
                     else                     data = index >> 8;
                     
@@ -665,7 +666,7 @@ int z80::process8BitArithmeticGroup() {
                 {
                     incrementPC(2);
 
-                    uint8 data;
+                    uint8_t data;
                     if(byte[1] & 0b00000001) data = index;
                     else                     data = index >> 8;
                     
@@ -683,7 +684,7 @@ int z80::process8BitArithmeticGroup() {
                 {
                     incrementPC(2);
 
-                    uint8 data;
+                    uint8_t data;
                     if(byte[1] & 0b00000001) data = index;
                     else                     data = index >> 8;
                     
@@ -701,7 +702,7 @@ int z80::process8BitArithmeticGroup() {
                 {
                     incrementPC(2);
 
-                    uint8 data;
+                    uint8_t data;
                     if(byte[1] & 0b00000001) data = index;
                     else                     data = index >> 8;
                     
@@ -719,7 +720,7 @@ int z80::process8BitArithmeticGroup() {
                 {
                     incrementPC(2);
 
-                    uint8 data;
+                    uint8_t data;
                     if(byte[1] & 0b00000001) data = index;
                     else                     data = index >> 8;
                     
@@ -737,7 +738,7 @@ int z80::process8BitArithmeticGroup() {
                 {
                     incrementPC(2);
 
-                    uint8 data;
+                    uint8_t data;
                     if(byte[1] & 0b00000001) data = index;
                     else                     data = index >> 8;
                     
@@ -755,7 +756,7 @@ int z80::process8BitArithmeticGroup() {
                 {
                     incrementPC(2);
 
-                    uint8 data;
+                    uint8_t data;
                     if(byte[1] & 0b00000001) data = index;
                     else                     data = index >> 8;
                     

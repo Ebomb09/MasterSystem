@@ -1,11 +1,13 @@
-#include "vdp.h"
+#include "vdp/vdp.h"
+#include "common/utilities.h"
+#include "common/devices.h"
 #include <cstring>
 
 void vdp::drawScanLine() {
     bool enableDisplay = reg[0x1] & 0b01000000;
 
     // Render the background
-    uint8 bgColor = reg[0x07] + 16;
+    uint8_t bgColor = reg[0x07] + 16;
 
     for(int x = 0; x < 256; x ++) 
         frameBuffer[x + vCounter * 256] = getColor(bgColor);
@@ -18,13 +20,13 @@ void vdp::drawScanLine() {
     }
 }
 
-void vdp::drawTile(uint16 tileIndex, int x, int y, bool horizontalFlip, bool verticalFlip, bool spritePalette, bool doubleScale, bool tileWrap) {
+void vdp::drawTile(uint16_t tileIndex, int x, int y, bool horizontalFlip, bool verticalFlip, bool spritePalette, bool doubleScale, bool tileWrap) {
     bool hideLeftMostPixels = (reg[0x0] & 0b00100000);
     
-    uint16 addr = tileIndex * 32;
-    uint16 tileMapHeight = (getActiveDisplayHeight() == 192) ? 8*28 : 8*32;
+    uint16_t addr = tileIndex * 32;
+    uint16_t tileMapHeight = (getActiveDisplayHeight() == 192) ? 8*28 : 8*32;
 
-    uint8 size = (doubleScale) ? 16 : 8;
+    uint8_t size = (doubleScale) ? 16 : 8;
 
     for(int dot_y = 0; dot_y < size; dot_y ++) {
         int get_y = (doubleScale) ? dot_y / 2 : dot_y;
@@ -33,7 +35,7 @@ void vdp::drawTile(uint16 tileIndex, int x, int y, bool horizontalFlip, bool ver
             continue;
 
         // Read in the 4 bytes that determine a dots palette index
-        uint8 byte[4];
+        uint8_t byte[4];
 
         if(!verticalFlip) {
             byte[0] = vram[addr+get_y*4+0];
@@ -58,7 +60,7 @@ void vdp::drawTile(uint16 tileIndex, int x, int y, bool horizontalFlip, bool ver
             int get_x = (doubleScale) ? dot_x / 2 : dot_x;
 
             // Decode the palette index
-            uint8 paletteIndex = 0;
+            uint8_t paletteIndex = 0;
 
             if(byte[0] & (128 >> get_x))
                 paletteIndex |= 0b0001;
@@ -99,19 +101,19 @@ void vdp::drawTilemap(bool drawPriority) {
     bool verticalScrollLock         = (reg[0x0] & 0b10000000);
 
     // Base address
-    uint16 addr = getNameTableBaseAddress();
+    uint16_t addr = getNameTableBaseAddress();
 
-    uint16 tileMapHeight = (getActiveDisplayHeight() == 192) ? 28*8 : 32*8;
+    uint16_t tileMapHeight = (getActiveDisplayHeight() == 192) ? 28*8 : 32*8;
 
     int x = 0, y = 0;
 
-    uint8 scrollX = reg[0x8];
-    uint8 scrollY = reg[0x9];
+    uint8_t scrollX = reg[0x8];
+    uint8_t scrollY = reg[0x9];
 
     for(int i = addr; i < 0x3F00; i += 2) {
-        uint16 entry = pairBytes(vram[i+1], vram[i]);
+        uint16_t entry = pairBytes(vram[i+1], vram[i]);
 
-        uint16 tileIndex            = entry & 0b0000000111111111;
+        uint16_t tileIndex            = entry & 0b0000000111111111;
         bool horizontalFlip         = entry & 0b0000001000000000;
         bool verticalFlip           = entry & 0b0000010000000000;
         bool spritePalette          = entry & 0b0000100000000000;
@@ -162,22 +164,22 @@ void vdp::drawSprites() {
     bool enableShiftSpritesLeft     = (reg[0x0] & 0b00001000);
 
     // Base address
-    uint16 addr = getSpriteTableBaseAddress();
+    uint16_t addr = getSpriteTableBaseAddress();
 
     // Sprite position tracker
-    uint8 empty[256];
+    uint8_t empty[256];
     std::memset(empty, true, 256);
 
-    uint8 spriteBuffer = 0;
+    uint8_t spriteBuffer = 0;
 
     // Sprite size
-    uint8 size = (enableZoomedSprites) ? 16 : 8;
-    uint8 combined_h = (enableStackedSprites) ? size * 2 : size;
+    uint8_t size = (enableZoomedSprites) ? 16 : 8;
+    uint8_t combined_h = (enableStackedSprites) ? size * 2 : size;
 
     for(int i = 0; i < 64; i ++) {
-        uint8 y             = vram[addr+i];
-        uint8 x             = vram[addr+0x80+i*2];
-        uint16 tileIndex    = vram[addr+0x80+i*2+1];
+        uint8_t y             = vram[addr+i];
+        uint8_t x             = vram[addr+0x80+i*2];
+        uint16_t tileIndex    = vram[addr+0x80+i*2+1];
 
         if(enable8thBitTileIndex)
             tileIndex |= 256;
@@ -224,11 +226,11 @@ void vdp::drawSprites() {
     }
 }
 
-int vdp::getColor(uint8 paletteIndex) {
-    uint8 r = 0;
-    uint8 g = 0;
-    uint8 b = 0;
-    uint8 a = 255;
+int vdp::getColor(uint8_t paletteIndex) {
+    uint8_t r = 0;
+    uint8_t g = 0;
+    uint8_t b = 0;
+    uint8_t a = 255;
 
     switch(deviceType) {
 

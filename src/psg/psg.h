@@ -1,22 +1,22 @@
 #ifndef SEGA_PSG_H
 #define SEGA_PSG_H
 
-#include "utilities.h"
+#include <cstdint>
 
 struct psg {
 
     psg();
 
-    uint16 reg[4];
-    uint16 counter[4];
+    uint16_t reg[4];
+    uint16_t counter[4];
     int output[4];
-    uint16 linearFeedback;
+    uint16_t linearFeedback;
     int outputNoise;
 
-    uint8 latchChannel;
-    uint8 latchType;
+    uint8_t latchChannel;
+    uint8_t latchType;
 
-    void write(uint8 byte);
+    void write(uint8_t byte);
     void cycle();
     float getSample();
 };

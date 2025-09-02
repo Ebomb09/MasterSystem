@@ -1,7 +1,8 @@
-#include "z80.h"
+#include "z80/z80.h"
+#include "common/utilities.h"
 #include <stdexcept>
 
-uint8 z80::read_rrrSymbol(uint8 rrr) {
+uint8_t z80::read_rrrSymbol(uint8_t rrr) {
 
     // Get the 3bit constrained conversion of r-symbol to register
     rrr &= 0b111;
@@ -20,7 +21,7 @@ uint8 z80::read_rrrSymbol(uint8 rrr) {
     throw(std::invalid_argument("Invalid rrr-symbol"));
 }
 
-void z80::write_rrrSymbol(uint8 rrr, uint8 data) {
+void z80::write_rrrSymbol(uint8_t rrr, uint8_t data) {
     rrr &= 0b111;
 
     switch(rrr) {
@@ -36,7 +37,7 @@ void z80::write_rrrSymbol(uint8 rrr, uint8 data) {
     throw(std::invalid_argument("Invalid rrr-symbol"));
 }
 
-std::string z80::name_rrrSymbol(uint8 rrr) {
+const char* z80::name_rrrSymbol(uint8_t rrr) {
     rrr &= 0b111;
 
     switch(rrr) {
@@ -52,7 +53,7 @@ std::string z80::name_rrrSymbol(uint8 rrr) {
     return "";
 }
 
-uint16 z80::read_ddSymbol(uint8 dd) {
+uint16_t z80::read_ddSymbol(uint8_t dd) {
 
     // Get the 2bit constrained conversion of r-symbol to register
     dd &= 0b11;
@@ -66,7 +67,7 @@ uint16 z80::read_ddSymbol(uint8 dd) {
     throw(std::invalid_argument("Invalid dd-symbol"));
 }
 
-void z80::write_ddSymbol(uint8 dd, uint16 data) {
+void z80::write_ddSymbol(uint8_t dd, uint16_t data) {
     dd &= 0b11;
 
     switch(dd) {
@@ -78,7 +79,7 @@ void z80::write_ddSymbol(uint8 dd, uint16 data) {
     throw(std::invalid_argument("Invalid dd-symbol"));
 }
 
-std::string z80::name_ddSymbol(uint8 dd) {
+const char* z80::name_ddSymbol(uint8_t dd) {
     dd &= 0b11;
 
     switch(dd) {
@@ -90,19 +91,19 @@ std::string z80::name_ddSymbol(uint8 dd) {
     return "";
 }
 
-uint16 z80::read_ssSymbol(uint8 ss) {
+uint16_t z80::read_ssSymbol(uint8_t ss) {
     return read_ddSymbol(ss);
 }
 
-void z80::write_ssSymbol(uint8 ss, uint16 data) {
+void z80::write_ssSymbol(uint8_t ss, uint16_t data) {
     write_ddSymbol(ss, data);
 }
 
-std::string z80::name_ssSymbol(uint8 ss) {
+const char* z80::name_ssSymbol(uint8_t ss) {
     return name_ddSymbol(ss);
 }
 
-uint16 z80::read_qqSymbol(uint8 qq) {
+uint16_t z80::read_qqSymbol(uint8_t qq) {
 
     // Get the 2bit constrained conversion of q-symbol to register
     qq &= 0b11;
@@ -116,7 +117,7 @@ uint16 z80::read_qqSymbol(uint8 qq) {
     throw(std::invalid_argument("Invalid qq-symbol"));
 }
 
-void z80::write_qqSymbol(uint8 qq, uint16 data) {
+void z80::write_qqSymbol(uint8_t qq, uint16_t data) {
 
     // Get the 2bit constrained conversion of q-symbol to register
     qq &= 0b11;
@@ -130,7 +131,7 @@ void z80::write_qqSymbol(uint8 qq, uint16 data) {
     throw(std::invalid_argument("Invalid qq-symbol"));
 }
 
-std::string z80::name_qqSymbol(uint8 qq) {
+const char* z80::name_qqSymbol(uint8_t qq) {
     qq &= 0b11;
 
     switch(qq) {
@@ -142,7 +143,7 @@ std::string z80::name_qqSymbol(uint8 qq) {
     return "";
 }
 
-uint16 z80::read_ppSymbol(uint8 pp) {
+uint16_t z80::read_ppSymbol(uint8_t pp) {
     pp &= 0b11;
 
     switch(pp) {
@@ -154,7 +155,7 @@ uint16 z80::read_ppSymbol(uint8 pp) {
     throw(std::invalid_argument("Invalid pp-symbol"));
 }
 
-void z80::write_ppSymbol(uint8 pp, uint16 data) {
+void z80::write_ppSymbol(uint8_t pp, uint16_t data) {
     pp &= 0b11;
 
     switch(pp) {
@@ -166,7 +167,7 @@ void z80::write_ppSymbol(uint8 pp, uint16 data) {
     throw(std::invalid_argument("Invalid pp-symbol"));
 }
 
-std::string z80::name_ppSymbol(uint8 pp) {
+const char* z80::name_ppSymbol(uint8_t pp) {
     pp &= 0b11;
 
     switch(pp) {
@@ -178,7 +179,7 @@ std::string z80::name_ppSymbol(uint8 pp) {
     return "";
 }
 
-uint16 z80::read_rrSymbol(uint8 rr) {
+uint16_t z80::read_rrSymbol(uint8_t rr) {
     rr &= 0b11;
 
     switch(rr) {
@@ -190,7 +191,7 @@ uint16 z80::read_rrSymbol(uint8 rr) {
     throw(std::invalid_argument("Invalid rr-symbol"));
 }
 
-void z80::write_rrSymbol(uint8 rr, uint16 data) {
+void z80::write_rrSymbol(uint8_t rr, uint16_t data) {
     rr &= 0b11;
 
     switch(rr) {
@@ -202,7 +203,7 @@ void z80::write_rrSymbol(uint8 rr, uint16 data) {
     throw(std::invalid_argument("Invalid rr-symbol"));
 }
 
-std::string z80::name_rrSymbol(uint8 rr) {
+const char* z80::name_rrSymbol(uint8_t rr) {
     rr &= 0b11;
 
     switch(rr) {
@@ -214,7 +215,7 @@ std::string z80::name_rrSymbol(uint8 rr) {
     return "";
 }
 
-bool z80::read_cccSymbol(uint8 ccc) {
+bool z80::read_cccSymbol(uint8_t ccc) {
     ccc &= 0b0111;
 
     switch(ccc) {
@@ -230,7 +231,7 @@ bool z80::read_cccSymbol(uint8 ccc) {
     return false;
 }
 
-std::string z80::name_cccSymbol(uint8 ccc) {
+const char* z80::name_cccSymbol(uint8_t ccc) {
     ccc &= 0b0111;
 
     switch(ccc) {

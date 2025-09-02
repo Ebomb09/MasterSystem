@@ -1,9 +1,10 @@
-#include "../z80.h"
+#include "z80/z80.h"
+#include "common/utilities.h"
 #include <iostream>
 
 int z80::process16BitArithmeticGroup() {
 
-    uint8 byte[4] {
+    uint8_t byte[4] {
         mapper_read(programCounter),
         mapper_read(programCounter+1),
         mapper_read(programCounter+2),
@@ -19,9 +20,9 @@ int z80::process16BitArithmeticGroup() {
         case 0b00001001: case 0b00011001: case 0b00101001: case 0b00111001:
         {
             incrementPC(1);
-            uint8 ss = (byte[0] & 0b00110000) >> 4;
-            uint16 a = pairBytes(reg[H], reg[L]);
-            uint16 b = read_ssSymbol(ss);
+            uint8_t ss = (byte[0] & 0b00110000) >> 4;
+            uint16_t a = pairBytes(reg[H], reg[L]);
+            uint16_t b = read_ssSymbol(ss);
             ADD16(a, b);
             reg[H] = a >> 8;
             reg[L] = a; 
@@ -37,8 +38,8 @@ int z80::process16BitArithmeticGroup() {
         case 0b00000011: case 0b00010011: case 0b00100011: case 0b00110011: 
         {
             incrementPC(1);
-            uint8 ss = (byte[0] & 0b00110000) >> 4;
-            uint16 a = read_ssSymbol(ss);
+            uint8_t ss = (byte[0] & 0b00110000) >> 4;
+            uint16_t a = read_ssSymbol(ss);
             INC16(a);
             write_ssSymbol(ss, a);
             std::clog << "INC " << name_ssSymbol(ss) << "\n";
@@ -53,8 +54,8 @@ int z80::process16BitArithmeticGroup() {
         case 0b00001011: case 0b00011011: case 0b00101011: case 0b00111011: 
         {
             incrementPC(1);
-            uint8 ss = (byte[0] & 0b00110000) >> 4;
-            uint16 a = read_ssSymbol(ss);
+            uint8_t ss = (byte[0] & 0b00110000) >> 4;
+            uint16_t a = read_ssSymbol(ss);
             DEC16(a);
             write_ssSymbol(ss, a);
             std::clog << "DEC " << name_ssSymbol(ss) << "\n";
@@ -78,9 +79,9 @@ int z80::process16BitArithmeticGroup() {
                 case 0b01001010: case 0b01011010: case 0b01101010: case 0b01111010:
                 {
                     incrementPC(2);
-                    uint8 ss = (byte[1] & 0b00110000) >> 4;
-                    uint16 a = pairBytes(reg[H], reg[L]);
-                    uint16 b = read_ssSymbol(ss);
+                    uint8_t ss = (byte[1] & 0b00110000) >> 4;
+                    uint16_t a = pairBytes(reg[H], reg[L]);
+                    uint16_t b = read_ssSymbol(ss);
                     ADC16(a, b);
                     reg[H] = a >> 8;
                     reg[L] = a; 
@@ -96,9 +97,9 @@ int z80::process16BitArithmeticGroup() {
                 case 0b01000010: case 0b01010010: case 0b01100010: case 0b01110010:
                 {
                     incrementPC(2);
-                    uint8 ss = (byte[1] & 0b00110000) >> 4;
-                    uint16 a = pairBytes(reg[H], reg[L]);
-                    uint16 b = read_ssSymbol(ss);
+                    uint8_t ss = (byte[1] & 0b00110000) >> 4;
+                    uint16_t a = pairBytes(reg[H], reg[L]);
+                    uint16_t b = read_ssSymbol(ss);
                     SBC16(a, b);
                     reg[H] = a >> 8;
                     reg[L] = a; 
@@ -117,7 +118,7 @@ int z80::process16BitArithmeticGroup() {
         */
         case 0b11011101: case 0b11111101:
         {
-            uint16& index = (byte[0] == 0b11011101) ? indexRegisterX : indexRegisterY;
+            uint16_t& index = (byte[0] == 0b11011101) ? indexRegisterX : indexRegisterY;
 
             switch(byte[1]) {
 

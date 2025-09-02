@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
 
     // Initialize the running loop
     bool run = true;
-    toggleLog(false);
+    std::clog.setstate(std::iostream::failbit);
 
     while(run) {
         auto start = std::chrono::high_resolution_clock::now();

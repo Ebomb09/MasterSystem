@@ -1,9 +1,10 @@
-#include "../z80.h"
+#include "z80/z80.h"
+#include "common/utilities.h"
 #include <iostream>
 
 int z80::process8BitLoadGroup() {
 
-    uint8 byte[4] {
+    uint8_t byte[4] {
         mapper_read(programCounter),
         mapper_read(programCounter+1),
         mapper_read(programCounter+2),
@@ -25,8 +26,8 @@ int z80::process8BitLoadGroup() {
         case 0b01111101: case 0b01000101: case 0b01001101: case 0b01010101: case 0b01011101: case 0b01100101: case 0b01101101:
         {
             incrementPC(1);
-            uint8 rrr = (byte[0] & 0b00111000) >> 3;
-            uint8 rrr_p = byte[0] & 0b00000111;
+            uint8_t rrr = (byte[0] & 0b00111000) >> 3;
+            uint8_t rrr_p = byte[0] & 0b00000111;
             write_rrrSymbol(rrr, read_rrrSymbol(rrr_p));
             std::clog << "LD " << name_rrrSymbol(rrr) <<", " << name_rrrSymbol(rrr_p) << "\n";
             return 4;
@@ -41,7 +42,7 @@ int z80::process8BitLoadGroup() {
         case 0b00111110: case 0b00000110: case 0b00001110: case 0b00010110: case 0b00011110: case 0b00100110: case 0b00101110:
         {
             incrementPC(2);
-            uint8 rrr = (byte[0] & 0b00111000) >> 3;
+            uint8_t rrr = (byte[0] & 0b00111000) >> 3;
             write_rrrSymbol(rrr, byte[1]);
             std::clog << "LD " << name_rrrSymbol(rrr) <<", " << std::hex << (int)byte[1] << "\n";
             return 7;
@@ -55,8 +56,8 @@ int z80::process8BitLoadGroup() {
         case 0b01111110: case 0b01000110: case 0b01001110: case 0b01010110: case 0b01011110: case 0b01100110: case 0b01101110: 
         {
             incrementPC(1);
-            uint8 rrr = (byte[0] & 0b00111000) >> 3;
-            uint16 addr = pairBytes(reg[H], reg[L]);
+            uint8_t rrr = (byte[0] & 0b00111000) >> 3;
+            uint16_t addr = pairBytes(reg[H], reg[L]);
             write_rrrSymbol(rrr, mapper_read(addr));
             std::clog << "LD " << name_rrrSymbol(rrr) << ", (HL) \n";
             return 7;
@@ -70,8 +71,8 @@ int z80::process8BitLoadGroup() {
         case 0b1110111: case 0b1110000: case 0b1110001: case 0b1110010: case 0b1110011: case 0b1110100: case 0b1110101:
         {
             incrementPC(1);
-            uint8 rrr = byte[0] & 0b00000111;
-            uint16 addr = pairBytes(reg[H], reg[L]);
+            uint8_t rrr = byte[0] & 0b00000111;
+            uint16_t addr = pairBytes(reg[H], reg[L]);
             mapper_write(addr, read_rrrSymbol(rrr));
             std::clog << "LD (HL), " << name_rrrSymbol(rrr) << " \n";
             return 7;
@@ -86,7 +87,7 @@ int z80::process8BitLoadGroup() {
         case 0b00110110:
         {
             incrementPC(2);
-            uint16 addr = pairBytes(reg[H], reg[L]);
+            uint16_t addr = pairBytes(reg[H], reg[L]);
             mapper_write(addr, byte[1]);
             std::clog << "LD (HL), " << (int)byte[1] << "\n";
             return 10;
@@ -100,7 +101,7 @@ int z80::process8BitLoadGroup() {
         case 0b00001010:
         {
             incrementPC(1);
-            uint16 addr = pairBytes(reg[B], reg[C]);
+            uint16_t addr = pairBytes(reg[B], reg[C]);
             reg[A] = mapper_read(addr);
             std::clog << "LD A, (BC)\n";
             return 7;
@@ -114,7 +115,7 @@ int z80::process8BitLoadGroup() {
         case 0b00000010:
         {
             incrementPC(1);
-            uint16 addr = pairBytes(reg[B], reg[C]);
+            uint16_t addr = pairBytes(reg[B], reg[C]);
             mapper_write(addr, reg[A]);
             std::clog << "LD (BC), A\n";
             return 7;
@@ -128,7 +129,7 @@ int z80::process8BitLoadGroup() {
         case 0b00011010:
         {
             incrementPC(1);
-            uint16 addr = pairBytes(reg[D], reg[E]);
+            uint16_t addr = pairBytes(reg[D], reg[E]);
             reg[A] = mapper_read(addr);
             std::clog << "LD A, (DE)\n";
             return 7;
@@ -142,7 +143,7 @@ int z80::process8BitLoadGroup() {
         case 0b00010010:
         {
             incrementPC(1);
-            uint16 addr = pairBytes(reg[D], reg[E]);
+            uint16_t addr = pairBytes(reg[D], reg[E]);
             mapper_write(addr, reg[A]);
             std::clog << "LD (DE), A\n";
             return 7;
@@ -158,7 +159,7 @@ int z80::process8BitLoadGroup() {
         case 0b00111010:
         {
             incrementPC(3);
-            uint16 addr = pairBytes(byte[2], byte[1]);
+            uint16_t addr = pairBytes(byte[2], byte[1]);
             reg[A] = mapper_read(addr);
             std::clog << "LD A, (" << std::hex << (int)addr << ")\n";
             return 13;
@@ -174,7 +175,7 @@ int z80::process8BitLoadGroup() {
         case 0b00110010:
         {
             incrementPC(3);
-            uint16 addr = pairBytes(byte[2], byte[1]);
+            uint16_t addr = pairBytes(byte[2], byte[1]);
             mapper_write(addr, reg[A]);
             std::clog << "LD (" << std::hex << (int)addr << "), A\n";
             return 13;
@@ -262,7 +263,7 @@ int z80::process8BitLoadGroup() {
         */
         case 0b11011101: case 0b11111101:
         {
-            uint16& index = (byte[0] == 0b11011101) ? indexRegisterX : indexRegisterY;
+            uint16_t& index = (byte[0] == 0b11011101) ? indexRegisterX : indexRegisterY;
 
             switch(byte[1]) {
 
@@ -274,8 +275,8 @@ int z80::process8BitLoadGroup() {
                 case 0b01111110: case 0b01000110: case 0b01001110: case 0b01010110: case 0b01011110: case 0b01100110: case 0b01101110:
                 {
                     incrementPC(3);
-                    uint8 rrr = (byte[1] & 0b00111000) >> 3;
-                    uint16 addr = index + (sint8)byte[2];
+                    uint8_t rrr = (byte[1] & 0b00111000) >> 3;
+                    uint16_t addr = index + (int8_t)byte[2];
                     write_rrrSymbol(rrr, mapper_read(addr));
                     std::clog << "LD " << name_rrrSymbol(rrr) << ", (IX+d)\n";
                     return 19;
@@ -290,8 +291,8 @@ int z80::process8BitLoadGroup() {
                 case 0b01110111: case 0b01110000: case 0b01110001: case 0b01110010: case 0b01110011: case 0b01110100: case 0b01110101: 
                 {
                     incrementPC(3);
-                    uint8 rrr = byte[1] & 0b00000111;
-                    uint16 addr = index + (sint8)byte[2];
+                    uint8_t rrr = byte[1] & 0b00000111;
+                    uint16_t addr = index + (int8_t)byte[2];
                     mapper_write(addr, read_rrrSymbol(rrr));
                     std::clog << "LD (IX+d), " << name_rrrSymbol(rrr) << " \n";
                     return 19;
@@ -307,7 +308,7 @@ int z80::process8BitLoadGroup() {
                 case 0b00110110: 
                 {
                     incrementPC(4);
-                    uint16 addr = index + (sint8)byte[2];
+                    uint16_t addr = index + (int8_t)byte[2];
                     mapper_write(addr, byte[3]);
                     std::clog << "LD (IX+d), " << std::hex << (int)byte[3] << "\n";
                     return 19;
@@ -351,8 +352,8 @@ int z80::process8BitLoadGroup() {
                 case 0b01000101: case 0b01001101: case 0b01010101: case 0b01011101: case 0b01100101: case 0b01101101: case 0b01111101:
                 {
                     incrementPC(2);
-                    uint8 q = (byte[1] & 0b00111000) >> 3;
-                    uint8 data = index;
+                    uint8_t q = (byte[1] & 0b00111000) >> 3;
+                    uint8_t data = index;
 
                     switch(q) {
                         case 7: reg[A] = data; break;
@@ -375,8 +376,8 @@ int z80::process8BitLoadGroup() {
                 case 0b01000100: case 0b01001100: case 0b01010100: case 0b01011100: case 0b01100100: case 0b01101100: case 0b01111100:
                 {
                     incrementPC(2);
-                    uint8 q = (byte[1] & 0b00111000) >> 3;
-                    uint8 data = index >> 8;
+                    uint8_t q = (byte[1] & 0b00111000) >> 3;
+                    uint8_t data = index >> 8;
 
                     switch(q) {
                         case 7: reg[A] = data; break;

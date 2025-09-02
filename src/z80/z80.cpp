@@ -1,4 +1,5 @@
-#include "z80.h"
+#include "z80/z80.h"
+#include "common/utilities.h"
 #include <bitset>
 #include <iostream>
 
@@ -84,14 +85,14 @@ void z80::signalINT() {
     programCounter = 0x0038;
 }
 
-void z80::setFlag(uint8 flag, bool val) {
+void z80::setFlag(uint8_t flag, bool val) {
     reg[F] &= ~flag;
 
     if(val)
         reg[F] |= flag;
 }
 
-bool z80::getFlag(uint8 flag) {
+bool z80::getFlag(uint8_t flag) {
     return reg[F] & flag;
 }
 
@@ -99,15 +100,15 @@ void z80::incrementPC(int val) {
     programCounter += val;
     
     // Keep the 7th bit
-    uint8 bit = memoryRefresh & 0b10000000;
-    uint8 num = memoryRefresh & ~bit;
+    uint8_t bit = memoryRefresh & 0b10000000;
+    uint8_t num = memoryRefresh & ~bit;
     num += val;
     num &= ~bit;
     memoryRefresh = bit | num;
 }
 
-void z80::ADD(uint8& a, const uint8& b) {
-    uint8 res = a + b;
+void z80::ADD(uint8_t& a, const uint8_t& b) {
+    uint8_t res = a + b;
 
     setFlag(Sign, res & 0b10000000);
     setFlag(Zero, res == 0);
@@ -119,9 +120,9 @@ void z80::ADD(uint8& a, const uint8& b) {
     a = res;
 }
 
-void z80::ADC(uint8& a, const uint8& b) {
-    uint8 c = getFlag(Carry);
-    uint8 res = a + b + c;
+void z80::ADC(uint8_t& a, const uint8_t& b) {
+    uint8_t c = getFlag(Carry);
+    uint8_t res = a + b + c;
 
     setFlag(Sign, res & 0b10000000);
     setFlag(Zero, res == 0);
@@ -133,8 +134,8 @@ void z80::ADC(uint8& a, const uint8& b) {
     a = res;
 }
 
-void z80::SUB(uint8& a, const uint8& b) {
-    uint8 res = a - b;
+void z80::SUB(uint8_t& a, const uint8_t& b) {
+    uint8_t res = a - b;
 
     setFlag(Sign, res & 0b10000000);
     setFlag(Zero, res == 0);
@@ -146,9 +147,9 @@ void z80::SUB(uint8& a, const uint8& b) {
     a = res;
 }
 
-void z80::SBC(uint8& a, const uint8& b) {
-    uint8 c = getFlag(Carry);
-    uint8 res = a - b - c;
+void z80::SBC(uint8_t& a, const uint8_t& b) {
+    uint8_t c = getFlag(Carry);
+    uint8_t res = a - b - c;
 
     setFlag(Sign, res & 0b10000000);
     setFlag(Zero, res == 0);
@@ -160,8 +161,8 @@ void z80::SBC(uint8& a, const uint8& b) {
     a = res;
 }
 
-void z80::AND(uint8& a, const uint8& b) {
-    uint8 res = a & b;
+void z80::AND(uint8_t& a, const uint8_t& b) {
+    uint8_t res = a & b;
 
     setFlag(Sign, res & 0b10000000);
     setFlag(Zero, res == 0);
@@ -173,8 +174,8 @@ void z80::AND(uint8& a, const uint8& b) {
     a = res;
 }
 
-void z80::OR(uint8& a, const uint8& b) {
-    uint8 res = a | b;
+void z80::OR(uint8_t& a, const uint8_t& b) {
+    uint8_t res = a | b;
 
     setFlag(Sign, res & 0b10000000);
     setFlag(Zero, res == 0);
@@ -186,8 +187,8 @@ void z80::OR(uint8& a, const uint8& b) {
     a = res;
 }
 
-void z80::XOR(uint8& a, const uint8& b) {
-    uint8 res = a ^ b;
+void z80::XOR(uint8_t& a, const uint8_t& b) {
+    uint8_t res = a ^ b;
 
     setFlag(Sign, res & 0b10000000);
     setFlag(Zero, res == 0);
@@ -200,8 +201,8 @@ void z80::XOR(uint8& a, const uint8& b) {
 }
 
 
-void z80::CP(const uint8& a, const uint8& b) {
-    uint8 res = a - b;
+void z80::CP(const uint8_t& a, const uint8_t& b) {
+    uint8_t res = a - b;
 
     setFlag(Sign, res & 0b10000000);
     setFlag(Zero, res == 0);
@@ -211,8 +212,8 @@ void z80::CP(const uint8& a, const uint8& b) {
     setFlag(Carry, borrow8(a, b));
 }
 
-void z80::INC(uint8& a) {
-    uint8 res = a + 1;
+void z80::INC(uint8_t& a) {
+    uint8_t res = a + 1;
 
     setFlag(Sign, res & 0b10000000);
     setFlag(Zero, res == 0);
@@ -223,8 +224,8 @@ void z80::INC(uint8& a) {
     a = res;
 }
 
-void z80::DEC(uint8& a) {
-    uint8 res = a - 1;
+void z80::DEC(uint8_t& a) {
+    uint8_t res = a - 1;
 
     setFlag(Sign, res & 0b10000000);
     setFlag(Zero, res == 0);
@@ -235,8 +236,8 @@ void z80::DEC(uint8& a) {
     a = res;
 }
 
-void z80::ADD16(uint16& a, const uint16& b) {
-    uint16 res = a + b;
+void z80::ADD16(uint16_t& a, const uint16_t& b) {
+    uint16_t res = a + b;
 
     setFlag(HalfCarry, halfCarry16(a, b));
     setFlag(AddSubtract, 0);
@@ -245,9 +246,9 @@ void z80::ADD16(uint16& a, const uint16& b) {
     a = res;
 }
 
-void z80::ADC16(uint16& a, const uint16& b) {
-    uint16 c = getFlag(Carry);
-    uint16 res = a + b + c;
+void z80::ADC16(uint16_t& a, const uint16_t& b) {
+    uint16_t c = getFlag(Carry);
+    uint16_t res = a + b + c;
 
     setFlag(Sign, res & 0b1000000000000000);
     setFlag(Zero, res == 0);
@@ -259,9 +260,9 @@ void z80::ADC16(uint16& a, const uint16& b) {
     a = res;
 }
 
-void z80::SBC16(uint16& a, const uint16& b) {
-    uint8 c = getFlag(Carry);
-    uint16 res = a - b - c;
+void z80::SBC16(uint16_t& a, const uint16_t& b) {
+    uint8_t c = getFlag(Carry);
+    uint16_t res = a - b - c;
 
     setFlag(Sign, res & 0b1000000000000000);
     setFlag(Zero, res == 0);
@@ -273,15 +274,15 @@ void z80::SBC16(uint16& a, const uint16& b) {
     a = res;
 }
 
-void z80::INC16(uint16& a) {
+void z80::INC16(uint16_t& a) {
     a += 1;
 }
 
-void z80::DEC16(uint16& a) {
+void z80::DEC16(uint16_t& a) {
     a -= 1;
 }
 
-void z80::CALL(const uint16& addr) {
+void z80::CALL(const uint16_t& addr) {
     PUSH(programCounter);
     programCounter = addr;
 }
@@ -299,12 +300,12 @@ void z80::RETI() {
     RET();
 }
 
-void z80::RST(const uint8& p) {
+void z80::RST(const uint8_t& p) {
     PUSH(programCounter);
     programCounter = p * 8;
 }
 
-void z80::BIT(const uint8& bit, const uint8& data) {
+void z80::BIT(const uint8_t& bit, const uint8_t& data) {
     setFlag(Sign, (data & bit & 0b10000000));
     setFlag(ParityOverflow, (data & bit) == 0);
     setFlag(Zero, (data & bit) == 0);
@@ -312,15 +313,15 @@ void z80::BIT(const uint8& bit, const uint8& data) {
     setFlag(AddSubtract, 0);
 }
 
-void z80::SET(const uint8& bit, uint8& data) {
+void z80::SET(const uint8_t& bit, uint8_t& data) {
     data |= bit;
 }
 
-void z80::RES(const uint8& bit, uint8& data) {
+void z80::RES(const uint8_t& bit, uint8_t& data) {
     data &= ~bit;
 }
 
-void z80::RLC(uint8& num, bool A) {
+void z80::RLC(uint8_t& num, bool A) {
     setFlag(Carry, num & 0b10000000);
 
     num = num << 1;
@@ -336,7 +337,7 @@ void z80::RLC(uint8& num, bool A) {
     }
 }
 
-void z80::RL(uint8& num, bool A) {
+void z80::RL(uint8_t& num, bool A) {
     bool prev = getFlag(Carry);
     setFlag(Carry, num & 0b10000000);
 
@@ -353,7 +354,7 @@ void z80::RL(uint8& num, bool A) {
     }
 }
 
-void z80::RRC(uint8& num, bool A) {
+void z80::RRC(uint8_t& num, bool A) {
     setFlag(Carry, num & 0b00000001);
 
     num = num >> 1;
@@ -369,7 +370,7 @@ void z80::RRC(uint8& num, bool A) {
     }
 }
 
-void z80::RR(uint8& num, bool A) {
+void z80::RR(uint8_t& num, bool A) {
     bool prev = getFlag(Carry);
     setFlag(Carry, num & 0b00000001);
 
@@ -386,7 +387,7 @@ void z80::RR(uint8& num, bool A) {
     }
 }
 
-void z80::SLA(uint8& num) {
+void z80::SLA(uint8_t& num) {
     setFlag(Carry, num & 0b10000000);
     num = num << 1;
 
@@ -397,7 +398,7 @@ void z80::SLA(uint8& num) {
     setFlag(AddSubtract, 0);
 }
 
-void z80::SRA(uint8& num) {
+void z80::SRA(uint8_t& num) {
     setFlag(Carry, num & 0b00000001);
 
     num = num >> 1;
@@ -411,7 +412,7 @@ void z80::SRA(uint8& num) {
     setFlag(AddSubtract, 0);
 }
 
-void z80::SRL(uint8& num) {
+void z80::SRL(uint8_t& num) {
     setFlag(Carry, num & 0b00000001);
     num = num >> 1;
 
@@ -422,7 +423,7 @@ void z80::SRL(uint8& num) {
     setFlag(AddSubtract, 0);
 }
 
-void z80::SLL(uint8& num) {
+void z80::SLL(uint8_t& num) {
     setFlag(Carry, num & 0b10000000);
 
     num = num << 1;
@@ -435,13 +436,13 @@ void z80::SLL(uint8& num) {
     setFlag(AddSubtract, 0);
 }
 
-void z80::PUSH(const uint16& data) {
+void z80::PUSH(const uint16_t& data) {
     mapper_write(stackPointer - 1, data >> 8);
     mapper_write(stackPointer - 2, data);
     stackPointer -= 2;
 }
 
-void z80::POP(uint16& data) {
+void z80::POP(uint16_t& data) {
     data = pairBytes(mapper_read(stackPointer+1), mapper_read(stackPointer));
     stackPointer += 2;
 }

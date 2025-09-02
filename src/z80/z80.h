@@ -1,9 +1,8 @@
 #ifndef Z80_EMULATOR_H
 #define Z80_EMULATOR_H
 
-#include "utilities.h"
+#include <cstdint>
 #include <functional>
-#include <string>
 
 struct z80 {
 
@@ -22,39 +21,39 @@ struct z80 {
         Carry           = 0b00000001
     };
 
-    uint8 reg[16];
+    uint8_t reg[16];
 
-    uint8 interruptVector;
-    uint8 memoryRefresh;
+    uint8_t interruptVector;
+    uint8_t memoryRefresh;
 
-    uint16 indexRegisterX;
-    uint16 indexRegisterY;
+    uint16_t indexRegisterX;
+    uint16_t indexRegisterY;
 
-    uint16 stackPointer;
-    uint16 programCounter;
+    uint16_t stackPointer;
+    uint16_t programCounter;
 
-    uint8 interruptMode;
-    uint8 IFF1, IFF2;
+    uint8_t interruptMode;
+    uint8_t IFF1, IFF2;
 
     enum HaltState {
         HALT_NONE, HALT_WAIT, HALT_GOOD
     };
-    uint8 haltState;
+    uint8_t haltState;
 
     enum EIState {
         EI_NONE, EI_WAIT, EI_GOOD
     };
-    uint8 eiState;
+    uint8_t eiState;
 
-    std::function<uint8(uint16)>        port_read;
-    std::function<void(uint16, uint8)> port_write;
+    std::function<uint8_t(uint16_t)>        port_read;
+    std::function<void(uint16_t, uint8_t)> port_write;
 
-    std::function<uint8(uint16)>        mapper_read;
-    std::function<void(uint16, uint8)> mapper_write;
+    std::function<uint8_t(uint16_t)>        mapper_read;
+    std::function<void(uint16_t, uint8_t)> mapper_write;
 
 public:
-    void setFlag(uint8 flag, bool val);
-    bool getFlag(uint8 flag);
+    void setFlag(uint8_t flag, bool val);
+    bool getFlag(uint8_t flag);
 
     int cycle();
 
@@ -66,8 +65,8 @@ private:
 
     // 16bit Load Group
     int process16BitLoadGroup();
-    void PUSH(const uint16& data);
-    void POP(uint16& data);
+    void PUSH(const uint16_t& data);
+    void POP(uint16_t& data);
 
     int processExchangeSearchGroup();
     int processGeneralArithmeticGroup();
@@ -76,79 +75,79 @@ private:
 
     // 8bit Arithmetic
     int process8BitArithmeticGroup();
-    void ADD(uint8& a, const uint8& b);
-    void ADC(uint8& a, const uint8& b);
-    void SUB(uint8& a, const uint8& b);
-    void SBC(uint8& a, const uint8& b);
-    void AND(uint8& a, const uint8& b);
-    void OR(uint8& a, const uint8& b);
-    void XOR(uint8& a, const uint8& b);
-    void CP(const uint8& a, const uint8& b);
-    void INC(uint8& a);
-    void DEC(uint8& a);
+    void ADD(uint8_t& a, const uint8_t& b);
+    void ADC(uint8_t& a, const uint8_t& b);
+    void SUB(uint8_t& a, const uint8_t& b);
+    void SBC(uint8_t& a, const uint8_t& b);
+    void AND(uint8_t& a, const uint8_t& b);
+    void OR(uint8_t& a, const uint8_t& b);
+    void XOR(uint8_t& a, const uint8_t& b);
+    void CP(const uint8_t& a, const uint8_t& b);
+    void INC(uint8_t& a);
+    void DEC(uint8_t& a);
 
     //16bit Arithmetic
     int process16BitArithmeticGroup();
-    void ADD16(uint16& a, const uint16& b);
-    void ADC16(uint16& a, const uint16& b);
-    void SBC16(uint16& a, const uint16& b);
-    void INC16(uint16& a);
-    void DEC16(uint16& a);
+    void ADD16(uint16_t& a, const uint16_t& b);
+    void ADC16(uint16_t& a, const uint16_t& b);
+    void SBC16(uint16_t& a, const uint16_t& b);
+    void INC16(uint16_t& a);
+    void DEC16(uint16_t& a);
 
     // Call, return
     int processCallReturnGroup();
-    void CALL(const uint16& addr);
-    void RST(const uint8& p);
+    void CALL(const uint16_t& addr);
+    void RST(const uint8_t& p);
     void RET();
     void RETI();
     void RETN();
 
     // Bit Set, Reset, Test
     int processBitSetResetTest();
-    void BIT(const uint8& bit, const uint8& data);
-    void SET(const uint8& bit, uint8& data);
-    void RES(const uint8& bit, uint8& data);
+    void BIT(const uint8_t& bit, const uint8_t& data);
+    void SET(const uint8_t& bit, uint8_t& data);
+    void RES(const uint8_t& bit, uint8_t& data);
 
     // Rotate, Shift
     int processRotateShiftGroup();
-    void RLC(uint8& num, bool A = false);
-    void RL(uint8& num, bool A = false);
-    void RRC(uint8& num, bool A = false);
-    void RR(uint8& num, bool A = false);
-    void SLA(uint8& num);
-    void SRA(uint8& num);
-    void SRL(uint8& num);
-    void SLL(uint8& num);
+    void RLC(uint8_t& num, bool A = false);
+    void RL(uint8_t& num, bool A = false);
+    void RRC(uint8_t& num, bool A = false);
+    void RR(uint8_t& num, bool A = false);
+    void SLA(uint8_t& num);
+    void SRA(uint8_t& num);
+    void SRL(uint8_t& num);
+    void SLL(uint8_t& num);
 
     // Helper
     void incrementPC(int val);
 
-    uint8 read_rrrSymbol(uint8 rrr);
-    void write_rrrSymbol(uint8 rrr, uint8 data);
-    std::string name_rrrSymbol(uint8 rrr);
+    uint8_t read_rrrSymbol(uint8_t rrr);
+    void write_rrrSymbol(uint8_t rrr, uint8_t data);
+    const char* name_rrrSymbol(uint8_t rrr);
 
-    uint16 read_ddSymbol(uint8 dd);
-    void write_ddSymbol(uint8 dd, uint16 data);
-    std::string name_ddSymbol(uint8 dd);
+    uint16_t read_ddSymbol(uint8_t dd);
+    void write_ddSymbol(uint8_t dd, uint16_t data);
+    const char* name_ddSymbol(uint8_t dd);
 
-    uint16 read_ssSymbol(uint8 ss);
-    void write_ssSymbol(uint8 ss, uint16 data);
-    std::string name_ssSymbol(uint8 ss);
+    uint16_t read_ssSymbol(uint8_t ss);
+    void write_ssSymbol(uint8_t ss, uint16_t data);
+    const char* name_ssSymbol(uint8_t ss);
 
-    uint16 read_qqSymbol(uint8 qq);
-    void write_qqSymbol(uint8 qq, uint16 data);
-    std::string name_qqSymbol(uint8 qq);
+    uint16_t read_qqSymbol(uint8_t qq);
+    void write_qqSymbol(uint8_t qq, uint16_t data);
+    const char* name_qqSymbol(uint8_t qq);
 
-    uint16 read_ppSymbol(uint8 pp);
-    void write_ppSymbol(uint8 pp, uint16 data);
-    std::string name_ppSymbol(uint8 pp);
+    uint16_t read_ppSymbol(uint8_t pp);
+    void write_ppSymbol(uint8_t pp, uint16_t data);
+    const char* name_ppSymbol(uint8_t pp);
 
-    uint16 read_rrSymbol(uint8 rr);
-    void write_rrSymbol(uint8 rr, uint16 data);
-    std::string name_rrSymbol(uint8 rr);
+    uint16_t read_rrSymbol(uint8_t rr);
+    void write_rrSymbol(uint8_t rr, uint16_t data);
+    const char* name_rrSymbol(uint8_t rr);
 
-    bool read_cccSymbol(uint8 ccc);
-    std::string name_cccSymbol(uint8 ccc);
+    bool read_cccSymbol(uint8_t ccc);
+    const char* name_cccSymbol(uint8_t ccc);
 };
 
 #endif

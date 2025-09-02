@@ -1,4 +1,6 @@
-#include "sms.h"
+#include "sms/sms.h"
+#include "common/devices.h"
+#include <iostream>
 #include <fstream>
 #include <functional>
 #include <cstring>
@@ -61,7 +63,7 @@ bool sms::loadRom(std::string romPath) {
     romSize = file.tellg();
     file.seekg(0, file.beg);
 
-    rom = new uint8[romSize];
+    rom = new uint8_t[romSize];
     file.read((char*)rom, romSize);
 
     file.close();
@@ -116,7 +118,7 @@ int sms::update(SDL_Renderer* renderer, SDL_AudioStream* stream) {
         // Invalid opcode found
         if(clock <= 0) {
 
-            uint8 byte[4] {
+            uint8_t byte[4] {
                 cpu.mapper_read(cpu.programCounter),
                 cpu.mapper_read(cpu.programCounter+1),
                 cpu.mapper_read(cpu.programCounter+2),
@@ -167,7 +169,7 @@ int sms::update(SDL_Renderer* renderer, SDL_AudioStream* stream) {
     return time;
 }
 
-uint8 sms::mapper_read(uint16 addr) {
+uint8_t sms::mapper_read(uint16_t addr) {
 
     // First 1kb is always the first 1kb of rom
     if(0x0000 <= addr && addr <= 0x03ff) {
@@ -224,7 +226,7 @@ uint8 sms::mapper_read(uint16 addr) {
     return 0;
 }
 
-void sms::mapper_write(uint16 addr, uint8 data) {
+void sms::mapper_write(uint16_t addr, uint8_t data) {
 
     // First 1kb is always the first 1kb of rom
     if(0x0000 <= addr && addr <= 0x03ff) {
@@ -283,7 +285,7 @@ void sms::mapper_write(uint16 addr, uint8 data) {
 
     // Mapper Bank Selects
     }else if(0xfffd <= addr && addr <= 0xffff) {
-        uint8 shift = 0;
+        uint8_t shift = 0;
 
         switch(mapperOptions & ROM_BankShift) {
             case 1: shift = 24; break;
@@ -294,7 +296,7 @@ void sms::mapper_write(uint16 addr, uint8 data) {
     }
 }
 
-uint8 sms::port_read(uint16 addr) {
+uint8_t sms::port_read(uint16_t addr) {
     addr %= 256;
 
     if(deviceType == GAME_GEAR && addr == 0x00) {
@@ -337,7 +339,7 @@ uint8 sms::port_read(uint16 addr) {
     return 0;
 }
 
-void sms::port_write(uint16 addr, uint8 data) {
+void sms::port_write(uint16_t addr, uint8_t data) {
     addr %= 256;
 
     if(addr == 0xFD) {
@@ -373,9 +375,9 @@ int sms::getMasterClock() {
     return 1;
 }
 
-void sms::setJoyPadControl(uint8 control, bool val) {
-    uint8* ptr = NULL;
-    uint8 bit = 0;
+void sms::setJoyPadControl(uint8_t control, bool val) {
+    uint8_t* ptr = NULL;
+    uint8_t bit = 0;
 
     switch(control) {
 

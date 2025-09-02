@@ -1,5 +1,4 @@
-#include "psg.h"
-#include <iostream>
+#include "psg/psg.h"
 
 psg::psg() {
 
@@ -15,8 +14,8 @@ psg::psg() {
     latchType = 0;
 }
 
-void psg::write(uint8 byte) {
-    uint8 latch = (byte & 0b10000000) >> 7;
+void psg::write(uint8_t byte) {
+    uint8_t latch = (byte & 0b10000000) >> 7;
     
     switch(latch) {
 
@@ -80,7 +79,7 @@ void psg::cycle() {
     
     // Tones
     for(int i = 0; i < 3; i ++) {
-        uint16 tone     = (reg[i] & 0b0000001111111111);
+        uint16_t tone     = (reg[i] & 0b0000001111111111);
 
         if(counter[i] > 0) {
             counter[i] --;
@@ -96,8 +95,8 @@ void psg::cycle() {
         counter[3] --;
 
     }else if(counter[3] == 0) {
-        uint8 noise = (reg[3] & 0b0000000000000100) >> 2;
-        uint8 reset = reg[3] & 0b0000000000000011;
+        uint8_t noise = (reg[3] & 0b0000000000000100) >> 2;
+        uint8_t reset = reg[3] & 0b0000000000000011;
 
         // Reset value
         switch(reset) {
@@ -109,14 +108,14 @@ void psg::cycle() {
         output[3] *= -1;
 
         if(output[3] == 1) {
-            uint16 in = 0;
+            uint16_t in = 0;
 
             outputNoise = (linearFeedback & 1);
 
             // White Noise
             if(noise == 1) {
-                uint8 bit1 = (linearFeedback & (1 << 0)) ? 1 : 0;
-                uint8 bit2 = (linearFeedback & (1 << 3)) ? 1 : 0;
+                uint8_t bit1 = (linearFeedback & (1 << 0)) ? 1 : 0;
+                uint8_t bit2 = (linearFeedback & (1 << 3)) ? 1 : 0;
                 
                 if(bit1 ^ bit2)
                     in = (1 << 15);
@@ -137,8 +136,8 @@ float psg::getSample() {
     
     // Tones
     for(int i = 0; i < 3; i ++) {
-        uint8 volume    = (reg[i] & 0b1111000000000000) >> 12;
-        uint16 tone     = (reg[i] & 0b0000001111111111);
+        uint8_t volume    = (reg[i] & 0b1111000000000000) >> 12;
+        uint16_t tone     = (reg[i] & 0b0000001111111111);
 
         if(counter[i] > 0)
             mix += output[i] * (1.0f - volume / 15.f);
@@ -146,7 +145,7 @@ float psg::getSample() {
 
     // Noise
     if(counter[3] > 0) {
-        uint8 volume = (reg[3] & 0b1111000000000000) >> 12;
+        uint8_t volume = (reg[3] & 0b1111000000000000) >> 12;
         mix += outputNoise * (1.0f - volume / 15.f);
     }
 

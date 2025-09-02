@@ -4,23 +4,23 @@
 #include <fstream>
 #include "nlohmann/json.hpp"
 
-uint8 memory[64 * 1024];
-uint8 port[64 * 1024];
+uint8_t memory[64 * 1024];
+uint8_t port[64 * 1024];
 
-uint8 mapper_read(uint16 addr) {
+uint8_t mapper_read(uint16_t addr) {
     return memory[addr];
 }
 
-void mapper_write(uint16 addr, uint8 data) {
+void mapper_write(uint16_t addr, uint8_t data) {
     memory[addr] = data;
 }
 
-uint8 port_read(uint16 addr) {
+uint8_t port_read(uint16_t addr) {
     addr %= 256;
     return port[addr];
 }
 
-void port_write(uint16 addr, uint8 data) {
+void port_write(uint16_t addr, uint8_t data) {
     addr %= 256;
     port[addr] = data;
 }
@@ -49,10 +49,10 @@ bool run_tests(z80& cpu, std::string path) {
         cpu.interruptMode       = test["initial"]["im"];
         cpu.IFF1                = test["initial"]["iff1"];
         cpu.IFF2                = test["initial"]["iff2"];
-        uint16 af_              = test["initial"]["af_"];
-        uint16 bc_              = test["initial"]["bc_"];
-        uint16 de_              = test["initial"]["de_"];
-        uint16 hl_              = test["initial"]["hl_"];
+        uint16_t af_              = test["initial"]["af_"];
+        uint16_t bc_              = test["initial"]["bc_"];
+        uint16_t de_              = test["initial"]["de_"];
+        uint16_t hl_              = test["initial"]["hl_"];
         cpu.reg[z80::A_p]       = af_ >> 8;
         cpu.reg[z80::F_p]       = af_;
         cpu.reg[z80::B_p]       = bc_ >> 8;
@@ -64,15 +64,15 @@ bool run_tests(z80& cpu, std::string path) {
     
         std::memset(memory, 0, 64*1024);
         for(auto& ramEntry : test["initial"]["ram"]) {
-            uint16 addr = (int)ramEntry[0];
-            uint8 data = (int)ramEntry[1];
+            uint16_t addr = (int)ramEntry[0];
+            uint8_t data = (int)ramEntry[1];
             mapper_write(addr, data);
         }
     
         std::memset(port, 0, 64*1024);
         for(auto& portEntry : test["ports"]) {
-            uint16 addr = (int)portEntry[0];
-            uint8 data = (int)portEntry[1];
+            uint16_t addr = (int)portEntry[0];
+            uint8_t data = (int)portEntry[1];
             port_write(addr, data);
         }
 
@@ -118,7 +118,7 @@ bool run_tests(z80& cpu, std::string path) {
     
         // Do not care about the undocumented flags
         cpu.reg[z80::F] &= 0b11010111;
-        uint8 real_f = (int)test["final"]["f"] & 0b11010111;
+        uint8_t real_f = (int)test["final"]["f"] & 0b11010111;
         if(cpu.reg[z80::F] != real_f) {
             std::clog << "\t- Mismatch reg[F] RESULT: " << (int)cpu.reg[z80::F] << ", ACTUAL: " << (int)real_f << "\n";
             ok = false;
@@ -172,7 +172,7 @@ bool run_tests(z80& cpu, std::string path) {
     
         // Do not care about the undocumented flags
         cpu.reg[z80::F_p] &= 0b11010111;
-        uint8 real_fp = af_ & 0b11010111;
+        uint8_t real_fp = af_ & 0b11010111;
         if(cpu.reg[z80::F_p] != real_fp) {
             std::clog << "\t- Mismatch reg[F'] RESULT: " << (int)cpu.reg[z80::F_p] << ", ACTUAL: " << (int)real_fp << "\n";
             ok = false;
@@ -183,8 +183,8 @@ bool run_tests(z80& cpu, std::string path) {
             ok = false;
         }
     
-        if(cpu.reg[z80::C_p] != (uint8)bc_) {
-            std::clog << "\t- Mismatch reg[C'] RESULT: " << (int)cpu.reg[z80::C_p] << ", ACTUAL: " << (int)(uint8)bc_ << "\n";
+        if(cpu.reg[z80::C_p] != (uint8_t)bc_) {
+            std::clog << "\t- Mismatch reg[C'] RESULT: " << (int)cpu.reg[z80::C_p] << ", ACTUAL: " << (int)(uint8_t)bc_ << "\n";
             ok = false;
         }
     
@@ -193,18 +193,18 @@ bool run_tests(z80& cpu, std::string path) {
             ok = false;
         }
     
-        if(cpu.reg[z80::E_p] != (uint8)de_) {
-            std::clog << "\t- Mismatch reg[E'] RESULT: " << (int)cpu.reg[z80::E_p] << ", ACTUAL: " << (int)(uint8)de_ << "\n";
+        if(cpu.reg[z80::E_p] != (uint8_t)de_) {
+            std::clog << "\t- Mismatch reg[E'] RESULT: " << (int)cpu.reg[z80::E_p] << ", ACTUAL: " << (int)(uint8_t)de_ << "\n";
             ok = false;
         }
     
         if(cpu.reg[z80::H_p] != hl_ >> 8) {
-            std::clog << "\t- Mismatch reg[H'] RESULT: " << (int)cpu.reg[z80::H_p] << ", ACTUAL: " << (int)(uint8)hl_ << "\n";
+            std::clog << "\t- Mismatch reg[H'] RESULT: " << (int)cpu.reg[z80::H_p] << ", ACTUAL: " << (int)(uint8_t)hl_ << "\n";
             ok = false;
         }
     
-        if(cpu.reg[z80::L_p] != (uint8)hl_) {
-            std::clog << "\t- Mismatch reg[L'p] RESULT: " << (int)cpu.reg[z80::L_p] << ", ACTUAL: " << (int)(uint8)hl_ << "\n";
+        if(cpu.reg[z80::L_p] != (uint8_t)hl_) {
+            std::clog << "\t- Mismatch reg[L'p] RESULT: " << (int)cpu.reg[z80::L_p] << ", ACTUAL: " << (int)(uint8_t)hl_ << "\n";
             ok = false;
         }
     

@@ -1,10 +1,11 @@
-#include "../z80.h"
+#include "z80/z80.h"
+#include "common/utilities.h"
 #include <bitset>
 #include <iostream>
 
 int z80::processGeneralArithmeticGroup() {
 
-    uint8 byte[4] {
+    uint8_t byte[4] {
         mapper_read(programCounter),
         mapper_read(programCounter+1),
         mapper_read(programCounter+2),
@@ -22,7 +23,7 @@ int z80::processGeneralArithmeticGroup() {
             incrementPC(1);
 
             // Check DAA instruction table for values for Binary Coded Decimals
-            uint8 fix = 0;
+            uint8_t fix = 0;
 
             if(getFlag(HalfCarry) || (reg[A] & 0x0F) >= 0x0A) {
                 fix += 0x06;
@@ -197,8 +198,8 @@ int z80::processGeneralArithmeticGroup() {
                     incrementPC(2);
 
                     // TODO
-                    uint8 a = 0;
-                    uint8 b = reg[A];
+                    uint8_t a = 0;
+                    uint8_t b = reg[A];
 
                     reg[A] = a - b;
 

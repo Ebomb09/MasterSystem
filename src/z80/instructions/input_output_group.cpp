@@ -1,10 +1,11 @@
-#include "../z80.h"
+#include "z80/z80.h"
+#include "common/utilities.h"
 #include <bitset>
 #include <iostream>
 
 int z80::processInputOutputGroup() {
 
-    uint8 byte[4] {
+    uint8_t byte[4] {
         mapper_read(programCounter),
         mapper_read(programCounter+1),
         mapper_read(programCounter+2),
@@ -58,9 +59,9 @@ int z80::processInputOutputGroup() {
                 */
                 case 0b01111000: case 0b01000000: case 0b01001000: case 0b01010000: case 0b01011000: case 0b01100000: case 0b01101000:
                 {
-                    uint8 rrr = (byte[1] & 0b00111000) >> 3;
+                    uint8_t rrr = (byte[1] & 0b00111000) >> 3;
 
-                    uint8 data = port_read(reg[C]);
+                    uint8_t data = port_read(reg[C]);
                     write_rrrSymbol(rrr, data);
 
                     setFlag(Sign, data & 0b10000000);
@@ -81,9 +82,9 @@ int z80::processInputOutputGroup() {
                 */
                 case 0b10100010:
                 {
-                    uint16 ptr = pairBytes(reg[H], reg[L]);
+                    uint16_t ptr = pairBytes(reg[H], reg[L]);
 
-                    uint8 data = port_read(reg[C]);
+                    uint8_t data = port_read(reg[C]);
                     mapper_write(ptr, data);
 
                     // Decrement B
@@ -110,9 +111,9 @@ int z80::processInputOutputGroup() {
                 */
                 case 0b10110010:
                 {
-                    uint16 ptr = pairBytes(reg[H], reg[L]);
+                    uint16_t ptr = pairBytes(reg[H], reg[L]);
 
-                    uint8 data = port_read(reg[C]);
+                    uint8_t data = port_read(reg[C]);
                     mapper_write(ptr, data);
 
                     // Decrement B
@@ -144,9 +145,9 @@ int z80::processInputOutputGroup() {
                 */
                 case 0b10101010:
                 {
-                    uint16 ptr = pairBytes(reg[H], reg[L]);
+                    uint16_t ptr = pairBytes(reg[H], reg[L]);
 
-                    uint8 data = port_read(reg[C]);
+                    uint8_t data = port_read(reg[C]);
                     mapper_write(ptr, data);
 
                     // Decrement B
@@ -173,9 +174,9 @@ int z80::processInputOutputGroup() {
                 */
                 case 0b10111010:
                 {
-                    uint16 ptr = pairBytes(reg[H], reg[L]);
+                    uint16_t ptr = pairBytes(reg[H], reg[L]);
 
-                    uint8 data = port_read(reg[C]);
+                    uint8_t data = port_read(reg[C]);
                     mapper_write(ptr, data);
 
                     // Decrement B
@@ -209,7 +210,7 @@ int z80::processInputOutputGroup() {
                 {
                     int rrr = (byte[1] & 0b00111000) >> 3;
 
-                    uint8 data = read_rrrSymbol(rrr);
+                    uint8_t data = read_rrrSymbol(rrr);
                     port_write(reg[C], data);
 
                     programCounter += 2;
@@ -225,9 +226,9 @@ int z80::processInputOutputGroup() {
                 */
                 case 0b10100011:
                 {
-                    uint16 localPtr = pairBytes(reg[H], reg[L]);
+                    uint16_t localPtr = pairBytes(reg[H], reg[L]);
 
-                    uint8 data = mapper_read(localPtr);
+                    uint8_t data = mapper_read(localPtr);
                     port_write(reg[C], data);
 
                     // Decrement B
@@ -254,9 +255,9 @@ int z80::processInputOutputGroup() {
                 */
                 case 0b10110011:
                 {
-                    uint16 localPtr = pairBytes(reg[H], reg[L]);
+                    uint16_t localPtr = pairBytes(reg[H], reg[L]);
 
-                    uint8 data = mapper_read(localPtr);
+                    uint8_t data = mapper_read(localPtr);
                     port_write(reg[C], data);
 
                     // Decrement B
@@ -288,9 +289,9 @@ int z80::processInputOutputGroup() {
                 */
                 case 0b10101011:
                 {
-                    uint16 localPtr = pairBytes(reg[H], reg[L]);
+                    uint16_t localPtr = pairBytes(reg[H], reg[L]);
 
-                    uint8 data = mapper_read(localPtr);
+                    uint8_t data = mapper_read(localPtr);
                     port_write(reg[C], data);
 
                     // Decrement B
@@ -317,9 +318,9 @@ int z80::processInputOutputGroup() {
                 */
                 case 0b10111011:
                 {
-                    uint16 localPtr = pairBytes(reg[H], reg[L]);
+                    uint16_t localPtr = pairBytes(reg[H], reg[L]);
 
-                    uint8 data = mapper_read(localPtr);
+                    uint8_t data = mapper_read(localPtr);
                     port_write(reg[C], data);
 
                     // Decrement B

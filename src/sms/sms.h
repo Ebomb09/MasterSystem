@@ -5,7 +5,6 @@
 #include "vdp/vdp.h"
 #include "psg/psg.h"
 
-#include <iostream>
 #include <string>
 
 #include "SDL3/SDL.h"
@@ -19,11 +18,11 @@ struct sms {
     vdp gpu;
     psg audio;
 
-    uint8* rom = NULL;
+    uint8_t* rom = NULL;
     int romSize;
     int romHeader;
-    uint8 ram[8 * 1024];
-    uint8 sram[2][16 * 1024];
+    uint8_t ram[8 * 1024];
+    uint8_t sram[2][16 * 1024];
 
     enum {
         Joypad_B_Down,
@@ -42,10 +41,10 @@ struct sms {
         Joypad_B_Right,
         Joypad_B_Left
     };
-    uint8 joypad1;
-    uint8 joypad2;
-    uint8 joypadStart;
-    void setJoyPadControl(uint8 control, bool val);
+    uint8_t joypad1;
+    uint8_t joypad2;
+    uint8_t joypadStart;
+    void setJoyPadControl(uint8_t control, bool val);
 
     bool loadRom(std::string romPath);
 
@@ -57,10 +56,10 @@ struct sms {
         SRAM_EnableRAM          = 0b00010000,
         ROM_EnableWrite         = 0b10000000
     };
-    uint8 mapperOptions;
-    uint8 mapperBankSelect[3];
-    uint8 mapper_read(uint16 addr);
-    void mapper_write(uint16 addr, uint8 data);
+    uint8_t mapperOptions;
+    uint8_t mapperBankSelect[3];
+    uint8_t mapper_read(uint16_t addr);
+    void mapper_write(uint16_t addr, uint8_t data);
 
     enum Ports {
         ControllerAPort     = 0xDC,
@@ -70,8 +69,8 @@ struct sms {
         VCounterPort        = 0x7E,
         HCounterPort        = 0x7F
     };
-    uint8 port_read(uint16 addr);
-    void port_write(uint16 addr, uint8 data);
+    uint8_t port_read(uint16_t addr);
+    void port_write(uint16_t addr, uint8_t data);
 
     int update(SDL_Renderer* renderer, SDL_AudioStream* stream);
 

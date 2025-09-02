@@ -1,10 +1,11 @@
-#include "../z80.h"
+#include "z80/z80.h"
+#include "common/utilities.h"
 #include <algorithm>
 #include <iostream>
 
 int z80::processExchangeSearchGroup() {
 
-    uint8 byte[4] {
+    uint8_t byte[4] {
         mapper_read(programCounter),
         mapper_read(programCounter+1),
         mapper_read(programCounter+2),
@@ -68,8 +69,8 @@ int z80::processExchangeSearchGroup() {
         */
         case 0b11100011:
         {
-            uint8 hi = reg[H];
-            uint8 lo = reg[L];
+            uint8_t hi = reg[H];
+            uint8_t lo = reg[L];
 
             reg[L] = mapper_read(stackPointer);
             reg[H] = mapper_read(stackPointer+1);
@@ -99,8 +100,8 @@ int z80::processExchangeSearchGroup() {
                 */
                 case 0b11100011:
                 {
-                    uint8 hi = indexRegisterX >> 8;
-                    uint8 lo = indexRegisterX;
+                    uint8_t hi = indexRegisterX >> 8;
+                    uint8_t lo = indexRegisterX;
         
                     indexRegisterX = pairBytes(mapper_read(stackPointer+1), mapper_read(stackPointer));
         
@@ -132,8 +133,8 @@ int z80::processExchangeSearchGroup() {
                 */
                 case 0b11100011:
                 {
-                    uint8 hi = indexRegisterY >> 8;
-                    uint8 lo = indexRegisterY;
+                    uint8_t hi = indexRegisterY >> 8;
+                    uint8_t lo = indexRegisterY;
         
                     indexRegisterY = pairBytes(mapper_read(stackPointer+1), mapper_read(stackPointer));
         
@@ -167,7 +168,7 @@ int z80::processExchangeSearchGroup() {
                 {
                     mapper_write(pairBytes(reg[D], reg[E]), mapper_read(pairBytes(reg[H], reg[L])));
 
-                    uint16 inc = pairBytes(reg[D], reg[E]) + 1;
+                    uint16_t inc = pairBytes(reg[D], reg[E]) + 1;
                     reg[D] = inc >> 8;
                     reg[E] = inc;
 
@@ -197,7 +198,7 @@ int z80::processExchangeSearchGroup() {
                 {
                     mapper_write(pairBytes(reg[D], reg[E]), mapper_read(pairBytes(reg[H], reg[L])));
 
-                    uint16 inc = pairBytes(reg[D], reg[E]) + 1;
+                    uint16_t inc = pairBytes(reg[D], reg[E]) + 1;
                     reg[D] = inc >> 8;
                     reg[E] = inc;
 
@@ -233,7 +234,7 @@ int z80::processExchangeSearchGroup() {
                 {
                     mapper_write(pairBytes(reg[D], reg[E]), mapper_read(pairBytes(reg[H], reg[L])));
 
-                    uint16 inc = pairBytes(reg[D], reg[E]) - 1;
+                    uint16_t inc = pairBytes(reg[D], reg[E]) - 1;
                     reg[D] = inc >> 8;
                     reg[E] = inc;
 
@@ -264,7 +265,7 @@ int z80::processExchangeSearchGroup() {
                 {
                     mapper_write(pairBytes(reg[D], reg[E]), mapper_read(pairBytes(reg[H], reg[L])));
 
-                    uint16 inc = pairBytes(reg[D], reg[E]) - 1;
+                    uint16_t inc = pairBytes(reg[D], reg[E]) - 1;
                     reg[D] = inc >> 8;
                     reg[E] = inc;
 
@@ -298,11 +299,11 @@ int z80::processExchangeSearchGroup() {
                 */
                 case 0b10100001:
                 {
-                    uint8 a = reg[A];
-                    uint8 b = mapper_read(pairBytes(reg[H], reg[L]));
-                    uint8 comp = a - b;
+                    uint8_t a = reg[A];
+                    uint8_t b = mapper_read(pairBytes(reg[H], reg[L]));
+                    uint8_t comp = a - b;
                     
-                    uint16 inc = pairBytes(reg[H], reg[L]) + 1;
+                    uint16_t inc = pairBytes(reg[H], reg[L]) + 1;
                     reg[H] = inc >> 8;
                     reg[L] = inc;
 
@@ -329,11 +330,11 @@ int z80::processExchangeSearchGroup() {
                 */
                 case 0b10110001:
                 {
-                    uint8 a = reg[A];
-                    uint8 b = mapper_read(pairBytes(reg[H], reg[L]));
-                    uint8 comp = a - b;
+                    uint8_t a = reg[A];
+                    uint8_t b = mapper_read(pairBytes(reg[H], reg[L]));
+                    uint8_t comp = a - b;
                     
-                    uint16 inc = pairBytes(reg[H], reg[L]) + 1;
+                    uint16_t inc = pairBytes(reg[H], reg[L]) + 1;
                     reg[H] = inc >> 8;
                     reg[L] = inc;
 
@@ -365,11 +366,11 @@ int z80::processExchangeSearchGroup() {
                 */
                 case 0b10101001:
                 {
-                    uint8 a = reg[A];
-                    uint8 b = mapper_read(pairBytes(reg[H], reg[L]));
-                    uint8 comp = a - b;
+                    uint8_t a = reg[A];
+                    uint8_t b = mapper_read(pairBytes(reg[H], reg[L]));
+                    uint8_t comp = a - b;
                     
-                    uint16 inc = pairBytes(reg[H], reg[L]) - 1;
+                    uint16_t inc = pairBytes(reg[H], reg[L]) - 1;
                     reg[H] = inc >> 8;
                     reg[L] = inc;
 
@@ -396,11 +397,11 @@ int z80::processExchangeSearchGroup() {
                 */
                 case 0b10111001:
                 {
-                    uint8 a = reg[A];
-                    uint8 b = mapper_read(pairBytes(reg[H], reg[L]));
-                    uint8 comp = a - b;
+                    uint8_t a = reg[A];
+                    uint8_t b = mapper_read(pairBytes(reg[H], reg[L]));
+                    uint8_t comp = a - b;
                     
-                    uint16 inc = pairBytes(reg[H], reg[L]) - 1;
+                    uint16_t inc = pairBytes(reg[H], reg[L]) - 1;
                     reg[H] = inc >> 8;
                     reg[L] = inc;
 

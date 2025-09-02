@@ -1,9 +1,10 @@
-#include "../z80.h"
+#include "z80/z80.h"
+#include "common/utilities.h"
 #include <iostream>
 
 int z80::process16BitLoadGroup() {
 
-    uint8 byte[4] {
+    uint8_t byte[4] {
         mapper_read(programCounter),
         mapper_read(programCounter+1),
         mapper_read(programCounter+2),
@@ -21,8 +22,8 @@ int z80::process16BitLoadGroup() {
         case 0b00000001: case 0b00010001: case 0b00100001: case 0b00110001: 
         {
             incrementPC(3);
-            uint8 dd = (byte[0] & 0b00110000) >> 4;
-            uint16 data = pairBytes(byte[2], byte[1]);
+            uint8_t dd = (byte[0] & 0b00110000) >> 4;
+            uint16_t data = pairBytes(byte[2], byte[1]);
             write_ddSymbol(dd, data);
             std::clog << "LD " << name_ddSymbol(dd) << ", " << std::hex << (int)data << "\n";
             return 10;
@@ -38,7 +39,7 @@ int z80::process16BitLoadGroup() {
         case 0b00101010:
         {
             incrementPC(3);
-            uint16 addr = pairBytes(byte[2], byte[1]);
+            uint16_t addr = pairBytes(byte[2], byte[1]);
             reg[H] = mapper_read(addr+1);
             reg[L] = mapper_read(addr);
             std::clog << "LD HL, (" << std::hex << (int)addr << ")\n";
@@ -55,7 +56,7 @@ int z80::process16BitLoadGroup() {
         case 0b00100010:
         {
             incrementPC(3);
-            uint16 addr = pairBytes(byte[2], byte[1]);
+            uint16_t addr = pairBytes(byte[2], byte[1]);
             mapper_write(addr, reg[L]);
             mapper_write(addr+1, reg[H]);
             std::clog << "LD (" << std::hex << (int)addr << "), HL\n";
@@ -83,8 +84,8 @@ int z80::process16BitLoadGroup() {
         case 0b11000101: case 0b11010101: case 0b11100101: case 0b11110101:
         {
             incrementPC(1);
-            uint8 qq = (byte[0] & 0b00110000) >> 4;
-            uint16 data = read_qqSymbol(qq);
+            uint8_t qq = (byte[0] & 0b00110000) >> 4;
+            uint16_t data = read_qqSymbol(qq);
             PUSH(data);
             std::clog << "PUSH " << name_qqSymbol(qq) << "\n";
             return 11;
@@ -98,8 +99,8 @@ int z80::process16BitLoadGroup() {
         case 0b11000001: case 0b11010001: case 0b11100001: case 0b11110001:
         {
             incrementPC(1);
-            uint8 qq = (byte[0] & 0b00110000) >> 4;
-            uint16 data; 
+            uint8_t qq = (byte[0] & 0b00110000) >> 4;
+            uint16_t data; 
             POP(data);
             write_qqSymbol(qq, data);
             std::clog << "POP " << name_qqSymbol(qq) << "\n";
@@ -125,9 +126,9 @@ int z80::process16BitLoadGroup() {
                 case 0b01001011: case 0b01011011: case 0b01101011: case 0b01111011:
                 {
                     incrementPC(4);
-                    uint8 dd = (byte[1] & 0b00110000) >> 4;
-                    uint16 addr = pairBytes(byte[3], byte[2]);
-                    uint16 data = pairBytes(mapper_read(addr+1), mapper_read(addr)); 
+                    uint8_t dd = (byte[1] & 0b00110000) >> 4;
+                    uint16_t addr = pairBytes(byte[3], byte[2]);
+                    uint16_t data = pairBytes(mapper_read(addr+1), mapper_read(addr)); 
                     write_ddSymbol(dd, data);
                     std::clog << "LD " << name_ddSymbol(dd) << ", (" << std::hex << addr << ")\n";
                     return 20;
@@ -143,9 +144,9 @@ int z80::process16BitLoadGroup() {
                 case 0b01000011: case 0b01010011: case 0b01100011: case 0b01110011:
                 {
                     incrementPC(4);
-                    uint8 dd = (byte[1] & 0b00110000) >> 4;
-                    uint16 addr = pairBytes(byte[3], byte[2]);
-                    uint16 data = read_ddSymbol(dd); 
+                    uint8_t dd = (byte[1] & 0b00110000) >> 4;
+                    uint16_t addr = pairBytes(byte[3], byte[2]);
+                    uint16_t data = read_ddSymbol(dd); 
                     mapper_write(addr, data);
                     mapper_write(addr+1, data >> 8);
                     std::clog << "LD (" << std::hex << (int)addr << "), " << name_ddSymbol(dd) << "\n";
@@ -163,7 +164,7 @@ int z80::process16BitLoadGroup() {
         */
         case 0b11011101: case 0b11111101:
         {
-            uint16& index = (byte[0] == 0b11011101) ? indexRegisterX : indexRegisterY;
+            uint16_t& index = (byte[0] == 0b11011101) ? indexRegisterX : indexRegisterY;
 
             switch(byte[1]) {
 
@@ -190,8 +191,8 @@ int z80::process16BitLoadGroup() {
                 case 0b00101010:
                 {
                     incrementPC(4);
-                    uint16 addr = pairBytes(byte[3], byte[2]);
-                    uint16 data = pairBytes(mapper_read(addr+1), mapper_read(addr));
+                    uint16_t addr = pairBytes(byte[3], byte[2]);
+                    uint16_t data = pairBytes(mapper_read(addr+1), mapper_read(addr));
                     index = data;
                     std::clog << "LD IX, (" << std::hex << (int)addr << ")\n";
                     return 20;
@@ -206,7 +207,7 @@ int z80::process16BitLoadGroup() {
                 case 0b00100010:
                 {
                     incrementPC(4);
-                    uint16 addr = pairBytes(byte[3], byte[2]);
+                    uint16_t addr = pairBytes(byte[3], byte[2]);
                     mapper_write(addr, index);
                     mapper_write(addr+1, index >> 8);
                     std::clog << "LD (" << std::hex << (int)addr << "), IX\n";

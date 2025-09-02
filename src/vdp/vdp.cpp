@@ -1,4 +1,6 @@
-#include "vdp.h"
+#include "vdp/vdp.h"
+#include "common/utilities.h"
+#include "common/devices.h"
 
 vdp::vdp() {
     controlOffset = 0;
@@ -13,16 +15,17 @@ vdp::vdp() {
     vCounter = 0;
 
     mode = 4;
+    deviceType = MASTER_SYSTEM_NTSC;
 }
 
-void vdp::writeControlPort(uint8 data) {
+void vdp::writeControlPort(uint8_t data) {
 
     if(controlOffset == 0) {
         controlWord = (controlWord & 0xFF00) | data;
         controlOffset = 1;
 
     }else {
-        controlWord = (controlWord & 0x00FF) | ((uint16)data << 8);
+        controlWord = (controlWord & 0x00FF) | ((uint16_t)data << 8);
         controlOffset = 0;
 
         switch(getControlCode()) {
@@ -52,23 +55,23 @@ void vdp::writeControlPort(uint8 data) {
     }
 }
 
-uint8 vdp::readControlPort() {
+uint8_t vdp::readControlPort() {
     controlOffset = 0;
 
     requestFrameInterrupt = false;
     requestLineInterrupt = false;
 
     // Return status and reset flags
-    uint8 res = status;
+    uint8_t res = status;
     status = 0;
     return res;
 }
 
-uint8 vdp::readDataPort() {
+uint8_t vdp::readDataPort() {
     controlOffset = 0;
 
     // Return the value in the current buffer and then update, and increment
-    uint8 res = readBuffer;
+    uint8_t res = readBuffer;
 
     readBuffer = vram[getControlVRAMAddress()];
     incrementControlVRAMAddress();
@@ -76,7 +79,7 @@ uint8 vdp::readDataPort() {
     return res;
 }
 
-void vdp::writeDataPort(uint8 data) {
+void vdp::writeDataPort(uint8_t data) {
     controlOffset = 0;
 
     switch(getControlCode()) {
@@ -100,16 +103,16 @@ void vdp::writeDataPort(uint8 data) {
     }
 }
 
-uint8 vdp::getControlCode() {
+uint8_t vdp::getControlCode() {
     return (controlWord & 0b1100000000000000) >> 14;
 }
 
-uint16 vdp::getControlVRAMAddress() {
+uint16_t vdp::getControlVRAMAddress() {
     return (controlWord & 0b0011111111111111);
 }
 
 void vdp::incrementControlVRAMAddress() {
-    uint16 addr = getControlVRAMAddress();
+    uint16_t addr = getControlVRAMAddress();
     addr += 1;
 
     // Bound the address
@@ -119,11 +122,11 @@ void vdp::incrementControlVRAMAddress() {
     controlWord = (controlWord & 0b1100000000000000) + addr;
 }
 
-uint8 vdp::getControlRegisterIndex() {
+uint8_t vdp::getControlRegisterIndex() {
     return (controlWord & 0b0000111100000000) >> 8;
 }
 
-uint8 vdp::getControlRegisterData() {
+uint8_t vdp::getControlRegisterData() {
     return (controlWord & 0b0000000011111111);
 }
 
@@ -171,11 +174,11 @@ bool vdp::canSendInterrupt() {
     return (enableFrameInterrupts && requestFrameInterrupt) || (enableLineInterrupts && requestLineInterrupt);
 }
 
-uint16 vdp::getActiveDisplayWidth() {
+uint16_t vdp::getActiveDisplayWidth() {
     return 256;
 }
 
-uint16 vdp::getActiveDisplayHeight() {
+uint16_t vdp::getActiveDisplayHeight() {
 
     if(reg[0x1] & 0b00001000) {
         return 240;
@@ -186,7 +189,7 @@ uint16 vdp::getActiveDisplayHeight() {
     return 192;
 }
 
-uint16 vdp::getScreenWidth() {
+uint16_t vdp::getScreenWidth() {
 
     switch(deviceType) {
 
@@ -198,7 +201,7 @@ uint16 vdp::getScreenWidth() {
     }
 }
 
-uint16 vdp::getScreenHeight() {
+uint16_t vdp::getScreenHeight() {
 
     switch(deviceType) {
 
@@ -210,7 +213,7 @@ uint16 vdp::getScreenHeight() {
     }
 }
 
-uint16 vdp::getScreenOffsetX() {
+uint16_t vdp::getScreenOffsetX() {
 
     if(deviceType == GAME_GEAR)
         return 48;
@@ -218,7 +221,7 @@ uint16 vdp::getScreenOffsetX() {
     return 0;
 }
 
-uint16 vdp::getScreenOffsetY() {
+uint16_t vdp::getScreenOffsetY() {
 
     if(deviceType == GAME_GEAR)
         return 24;
@@ -226,7 +229,7 @@ uint16 vdp::getScreenOffsetY() {
     return 0;
 }
 
-uint16 vdp::getNameTableBaseAddress() {
+uint16_t vdp::getNameTableBaseAddress() {
 
     if(getActiveDisplayHeight() != 192) {
         return ((reg[0x2] & 0b00001100) >> 2) * 0x1000 + 0x0700;
@@ -234,15 +237,15 @@ uint16 vdp::getNameTableBaseAddress() {
     return ((reg[0x2] & 0b00001110) >> 1) * 0x0800;
 }
 
-uint16 vdp::getSpriteTableBaseAddress() {
+uint16_t vdp::getSpriteTableBaseAddress() {
     return ((reg[0x5] & 0b01111110) >> 1) * 0x0100;
 }
 
-uint8 vdp::readHCounter() {
+uint8_t vdp::readHCounter() {
     return hCounter >> 1;
 }
 
-uint8 vdp::readVCounter() {
+uint8_t vdp::readVCounter() {
 
     switch(deviceType) {
 
@@ -322,11 +325,11 @@ uint8 vdp::readVCounter() {
     return 0;
 }
 
-uint16 vdp::getHCounterLimit(){
+uint16_t vdp::getHCounterLimit(){
     return 342;
 }
 
-uint16 vdp::getVCounterLimit(){
+uint16_t vdp::getVCounterLimit(){
 
     // NTSC
     switch(deviceType) {

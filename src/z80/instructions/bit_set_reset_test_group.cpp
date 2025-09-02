@@ -1,9 +1,10 @@
-#include "../z80.h"
+#include "z80/z80.h"
+#include "common/utilities.h"
 #include <iostream>
 
 int z80::processBitSetResetTest() {
 
-    uint8 byte[4] {
+    uint8_t byte[4] {
         mapper_read(programCounter),
         mapper_read(programCounter+1),
         mapper_read(programCounter+2),
@@ -34,8 +35,8 @@ int z80::processBitSetResetTest() {
                 case 0b01000101: case 0b01001101: case 0b01010101: case 0b01011101: case 0b01100101: case 0b01101101: case 0b01110101: case 0b01111101:
                 {
                     incrementPC(2);
-                    uint8 rrr = byte[1] & 0b00000111;
-                    uint8 bbb = (byte[1] & 0b00111000) >> 3;
+                    uint8_t rrr = byte[1] & 0b00000111;
+                    uint8_t bbb = (byte[1] & 0b00111000) >> 3;
                     BIT(1 << bbb, read_rrrSymbol(rrr));
                     std::clog << "BIT " << (int)bbb << ", " << name_rrrSymbol(rrr) << "\n";
                     return 8;
@@ -55,9 +56,9 @@ int z80::processBitSetResetTest() {
                 case 0b11000101: case 0b11001101: case 0b11010101: case 0b11011101: case 0b11100101: case 0b11101101: case 0b11110101: case 0b11111101:
                 {
                     incrementPC(2);
-                    uint8 rrr = byte[1] & 0b00000111;
-                    uint8 bbb = (byte[1] & 0b00111000) >> 3;
-                    uint8 data = read_rrrSymbol(rrr);
+                    uint8_t rrr = byte[1] & 0b00000111;
+                    uint8_t bbb = (byte[1] & 0b00111000) >> 3;
+                    uint8_t data = read_rrrSymbol(rrr);
                     SET(1 << bbb, data);
                     write_rrrSymbol(rrr, data);
                     std::clog << "SET " << (int)bbb << ", " << name_rrrSymbol(rrr) << "\n";
@@ -78,9 +79,9 @@ int z80::processBitSetResetTest() {
                 case 0b10000101: case 0b10001101: case 0b10010101: case 0b10011101: case 0b10100101: case 0b10101101: case 0b10110101: case 0b10111101:
                 {
                     incrementPC(2);
-                    uint8 rrr = byte[1] & 0b00000111;
-                    uint8 bbb = (byte[1] & 0b00111000) >> 3;
-                    uint8 data = read_rrrSymbol(rrr);
+                    uint8_t rrr = byte[1] & 0b00000111;
+                    uint8_t bbb = (byte[1] & 0b00111000) >> 3;
+                    uint8_t data = read_rrrSymbol(rrr);
                     RES(1 << bbb, data);
                     write_rrrSymbol(rrr, data);
                     std::clog << "RES " << (int)bbb << ", " << name_rrrSymbol(rrr) << "\n";
@@ -95,8 +96,8 @@ int z80::processBitSetResetTest() {
                 case 0b01000110: case 0b01001110: case 0b01010110: case 0b01011110: case 0b01100110: case 0b01101110: case 0b01110110: case 0b01111110:
                 {
                     incrementPC(2);
-                    uint16 addr = pairBytes(reg[H], reg[L]);
-                    uint8 bbb = (byte[1] & 0b00111000) >> 3;
+                    uint16_t addr = pairBytes(reg[H], reg[L]);
+                    uint8_t bbb = (byte[1] & 0b00111000) >> 3;
                     BIT(1 << bbb, mapper_read(addr));
                     std::clog << "BIT " << (int)bbb << ", (HL)\n";
                     return 12;
@@ -110,9 +111,9 @@ int z80::processBitSetResetTest() {
                 case 0b11000110: case 0b11001110: case 0b11010110: case 0b11011110: case 0b11100110: case 0b11101110: case 0b11110110: case 0b11111110:
                 {
                     incrementPC(2);
-                    uint16 addr = pairBytes(reg[H], reg[L]);
-                    uint8 bbb = (byte[1] & 0b00111000) >> 3;
-                    uint8 data = mapper_read(addr);
+                    uint16_t addr = pairBytes(reg[H], reg[L]);
+                    uint8_t bbb = (byte[1] & 0b00111000) >> 3;
+                    uint8_t data = mapper_read(addr);
                     SET(1 << bbb, data);
                     mapper_write(addr, data);
                     std::clog << "SET " << (int)bbb << ", (HL)\n";
@@ -127,9 +128,9 @@ int z80::processBitSetResetTest() {
                 case 0b10000110: case 0b10001110: case 0b10010110: case 0b10011110: case 0b10100110: case 0b10101110: case 0b10110110: case 0b10111110:
                 {
                     incrementPC(2);
-                    uint16 addr = pairBytes(reg[H], reg[L]);
-                    uint8 bbb = (byte[1] & 0b00111000) >> 3;
-                    uint8 data = mapper_read(addr);
+                    uint16_t addr = pairBytes(reg[H], reg[L]);
+                    uint8_t bbb = (byte[1] & 0b00111000) >> 3;
+                    uint8_t data = mapper_read(addr);
                     RES(1 << bbb, data);
                     mapper_write(addr, data);
                     std::clog << "RES " << (int)bbb << ", (HL)\n";
@@ -147,7 +148,7 @@ int z80::processBitSetResetTest() {
         */
         case 0b11011101: case 0b11111101:
         {
-            uint16& index = (byte[0] == 0b11011101) ? indexRegisterX : indexRegisterY;
+            uint16_t& index = (byte[0] == 0b11011101) ? indexRegisterX : indexRegisterY;
 
             /* Shift Opcodes
 
@@ -164,8 +165,8 @@ int z80::processBitSetResetTest() {
                     case 0b01000110: case 0b01001110: case 0b01010110: case 0b01011110: case 0b01100110: case 0b01101110: case 0b01110110: case 0b01111110:
                     {
                         incrementPC(4);
-                        uint16 addr = index + (sint8)byte[2];
-                        uint8 bbb = (byte[3] & 0b00111000) >> 3;
+                        uint16_t addr = index + (int8_t)byte[2];
+                        uint8_t bbb = (byte[3] & 0b00111000) >> 3;
                         BIT(1 << bbb, mapper_read(addr));
                         std::clog << "BIT " << (int)bbb << ", (IX+d)\n";
                         return 20;
@@ -179,9 +180,9 @@ int z80::processBitSetResetTest() {
                     case 0b11000110: case 0b11001110: case 0b11010110: case 0b11011110: case 0b11100110: case 0b11101110: case 0b11110110: case 0b11111110:
                     {
                         incrementPC(4);
-                        uint16 addr = index + (sint8)byte[2];
-                        uint8 bbb = (byte[3] & 0b00111000) >> 3;
-                        uint8 data = mapper_read(addr);
+                        uint16_t addr = index + (int8_t)byte[2];
+                        uint8_t bbb = (byte[3] & 0b00111000) >> 3;
+                        uint8_t data = mapper_read(addr);
                         SET(1 << bbb, data);
                         mapper_write(addr, data);
                         std::clog << "SET " << (int)bbb << ", (IX+d)\n";
@@ -196,9 +197,9 @@ int z80::processBitSetResetTest() {
                     case 0b10000110: case 0b10001110: case 0b10010110: case 0b10011110: case 0b10100110: case 0b10101110: case 0b10110110: case 0b10111110:
                     {
                         incrementPC(4);
-                        uint16 addr = index + (sint8)byte[2];
-                        uint8 bbb = (byte[3] & 0b00111000) >> 3;
-                        uint8 data = mapper_read(addr);
+                        uint16_t addr = index + (int8_t)byte[2];
+                        uint8_t bbb = (byte[3] & 0b00111000) >> 3;
+                        uint8_t data = mapper_read(addr);
                         RES(1 << bbb, data);
                         mapper_write(addr, data);
                         std::clog << "RES " << (int)bbb << ", (IX+d)\n";

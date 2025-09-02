@@ -1,10 +1,11 @@
-#include "../z80.h"
+#include "z80/z80.h"
+#include "common/utilities.h"
 #include <bitset>
 #include <iostream>
 
 int z80::processRotateShiftGroup() {
 
-    uint8 byte[4] {
+    uint8_t byte[4] {
         mapper_read(programCounter),
         mapper_read(programCounter+1),
         mapper_read(programCounter+2),
@@ -81,12 +82,12 @@ int z80::processRotateShiftGroup() {
                 case 0b01101111:
                 {
                     incrementPC(2);
-                    uint16 addr = pairBytes(reg[H], reg[L]);
-                    uint8 data = mapper_read(addr);
+                    uint16_t addr = pairBytes(reg[H], reg[L]);
+                    uint8_t data = mapper_read(addr);
 
-                    uint8 a = reg[A] & 0b00001111;
-                    uint8 b = data & 0b11110000;
-                    uint8 c = data & 0b00001111;
+                    uint8_t a = reg[A] & 0b00001111;
+                    uint8_t b = data & 0b11110000;
+                    uint8_t c = data & 0b00001111;
 
                     reg[A] &= 0b11110000;
                     reg[A] |= b >> 4;
@@ -115,12 +116,12 @@ int z80::processRotateShiftGroup() {
                 case 0b01100111:
                 {
                     incrementPC(2);
-                    uint16 addr = pairBytes(reg[H], reg[L]);
-                    uint8 data = mapper_read(addr);
+                    uint16_t addr = pairBytes(reg[H], reg[L]);
+                    uint8_t data = mapper_read(addr);
 
-                    uint8 a = reg[A] & 0b00001111;
-                    uint8 b = data & 0b11110000;
-                    uint8 c = data & 0b00001111;
+                    uint8_t a = reg[A] & 0b00001111;
+                    uint8_t b = data & 0b11110000;
+                    uint8_t c = data & 0b00001111;
 
                     reg[A] &= 0b11110000;
                     reg[A] |= c;
@@ -161,8 +162,8 @@ int z80::processRotateShiftGroup() {
                 case 0b00000111: case 0b00000000: case 0b00000001: case 0b00000010: case 0b00000011: case 0b00000100: case 0b00000101:
                 {
                     incrementPC(2);
-                    uint8 rrr = byte[1] & 0b00000111;
-                    uint8 data = read_rrrSymbol(rrr);
+                    uint8_t rrr = byte[1] & 0b00000111;
+                    uint8_t data = read_rrrSymbol(rrr);
                     RLC(data);
                     write_rrrSymbol(rrr, data);
                     std::clog << "RLC " << name_rrrSymbol(rrr) << "\n";
@@ -177,8 +178,8 @@ int z80::processRotateShiftGroup() {
                 case 0b00110111: case 0b00110000: case 0b00110001: case 0b00110010: case 0b00110011: case 0b00110100: case 0b00110101:
                 {
                     incrementPC(2);
-                    uint8 rrr = byte[1] & 0b00000111;
-                    uint8 data = read_rrrSymbol(rrr);
+                    uint8_t rrr = byte[1] & 0b00000111;
+                    uint8_t data = read_rrrSymbol(rrr);
                     SLL(data);
                     write_rrrSymbol(rrr, data);
                     std::clog << "SLL " << name_rrrSymbol(rrr) << "\n";
@@ -193,8 +194,8 @@ int z80::processRotateShiftGroup() {
                 case 0b00010111: case 0b00010000: case 0b00010001: case 0b00010010: case 0b00010011: case 0b00010100: case 0b00010101:
                 {
                     incrementPC(2);
-                    uint8 rrr = byte[1] & 0b00000111;
-                    uint8 data = read_rrrSymbol(rrr);
+                    uint8_t rrr = byte[1] & 0b00000111;
+                    uint8_t data = read_rrrSymbol(rrr);
                     RL(data);
                     write_rrrSymbol(rrr, data);
                     std::clog << "RL " << name_rrrSymbol(rrr) << "\n";
@@ -209,8 +210,8 @@ int z80::processRotateShiftGroup() {
                 case 0b00001111: case 0b00001000: case 0b00001001: case 0b00001010: case 0b00001011: case 0b00001100: case 0b00001101:
                 {
                     incrementPC(2);
-                    uint8 rrr = byte[1] & 0b00000111;
-                    uint8 data = read_rrrSymbol(rrr);
+                    uint8_t rrr = byte[1] & 0b00000111;
+                    uint8_t data = read_rrrSymbol(rrr);
                     RRC(data);
                     write_rrrSymbol(rrr, data);
                     std::clog << "RRC " << name_rrrSymbol(rrr) << "\n";
@@ -225,8 +226,8 @@ int z80::processRotateShiftGroup() {
                 case 0b00011111: case 0b00011000: case 0b00011001: case 0b00011010: case 0b00011011: case 0b00011100: case 0b00011101:
                 {
                     incrementPC(2);
-                    uint8 rrr = byte[1] & 0b00000111;
-                    uint8 data = read_rrrSymbol(rrr);
+                    uint8_t rrr = byte[1] & 0b00000111;
+                    uint8_t data = read_rrrSymbol(rrr);
                     RR(data);
                     write_rrrSymbol(rrr, data);
                     std::clog << "RR " << name_rrrSymbol(rrr) << "\n";
@@ -241,8 +242,8 @@ int z80::processRotateShiftGroup() {
                 case 0b00100111: case 0b00100000: case 0b00100001: case 0b00100010: case 0b00100011: case 0b00100100: case 0b00100101:
                 {
                     incrementPC(2);
-                    uint8 rrr = byte[1] & 0b00000111;
-                    uint8 data = read_rrrSymbol(rrr);
+                    uint8_t rrr = byte[1] & 0b00000111;
+                    uint8_t data = read_rrrSymbol(rrr);
                     SLA(data);
                     write_rrrSymbol(rrr, data);
                     std::clog << "SLA " << name_rrrSymbol(rrr) << "\n";
@@ -257,8 +258,8 @@ int z80::processRotateShiftGroup() {
                 case 0b00101111: case 0b00101000: case 0b00101001: case 0b00101010: case 0b00101011: case 0b00101100: case 0b00101101:
                 {
                     incrementPC(2);
-                    uint8 rrr = byte[1] & 0b00000111;
-                    uint8 data = read_rrrSymbol(rrr);
+                    uint8_t rrr = byte[1] & 0b00000111;
+                    uint8_t data = read_rrrSymbol(rrr);
                     SRA(data);
                     write_rrrSymbol(rrr, data);
                     std::clog << "SRA " << name_rrrSymbol(rrr) << "\n";
@@ -273,8 +274,8 @@ int z80::processRotateShiftGroup() {
                 case 0b00111111: case 0b00111000: case 0b00111001: case 0b00111010: case 0b00111011: case 0b00111100: case 0b00111101:
                 {
                     incrementPC(2);
-                    uint8 rrr = byte[1] & 0b00000111;
-                    uint8 data = read_rrrSymbol(rrr);
+                    uint8_t rrr = byte[1] & 0b00000111;
+                    uint8_t data = read_rrrSymbol(rrr);
                     SRL(data);
                     write_rrrSymbol(rrr, data);
                     std::clog << "SRL " << name_rrrSymbol(rrr) << "\n";
@@ -289,8 +290,8 @@ int z80::processRotateShiftGroup() {
                 case 0b00000110:
                 {
                     incrementPC(2);
-                    uint16 addr = pairBytes(reg[H], reg[L]);
-                    uint8 data = mapper_read(addr);
+                    uint16_t addr = pairBytes(reg[H], reg[L]);
+                    uint8_t data = mapper_read(addr);
                     RLC(data);
                     mapper_write(addr, data);
                     std::clog << "RLC (HL)\n";
@@ -305,8 +306,8 @@ int z80::processRotateShiftGroup() {
                 case 0b00110110: 
                 {
                     incrementPC(2);
-                    uint16 addr = pairBytes(reg[H], reg[L]);
-                    uint8 data = mapper_read(addr);
+                    uint16_t addr = pairBytes(reg[H], reg[L]);
+                    uint8_t data = mapper_read(addr);
                     SLL(data);
                     mapper_write(addr, data);
                     std::clog << "SLL (HL)\n";
@@ -321,8 +322,8 @@ int z80::processRotateShiftGroup() {
                 case 0b00010110:
                 {
                     incrementPC(2);
-                    uint16 addr = pairBytes(reg[H], reg[L]);
-                    uint8 data = mapper_read(addr);
+                    uint16_t addr = pairBytes(reg[H], reg[L]);
+                    uint8_t data = mapper_read(addr);
                     RL(data);
                     mapper_write(addr, data);
                     std::clog << "RL (HL)\n";
@@ -337,8 +338,8 @@ int z80::processRotateShiftGroup() {
                 case 0b00001110:
                 {
                     incrementPC(2);
-                    uint16 addr = pairBytes(reg[H], reg[L]);
-                    uint8 data = mapper_read(addr);
+                    uint16_t addr = pairBytes(reg[H], reg[L]);
+                    uint8_t data = mapper_read(addr);
                     RRC(data);
                     mapper_write(addr, data);
                     std::clog << "RRC (HL)\n";
@@ -353,8 +354,8 @@ int z80::processRotateShiftGroup() {
                 case 0b00011110:
                 {
                     incrementPC(2);
-                    uint16 addr = pairBytes(reg[H], reg[L]);
-                    uint8 data = mapper_read(addr);
+                    uint16_t addr = pairBytes(reg[H], reg[L]);
+                    uint8_t data = mapper_read(addr);
                     RR(data);
                     mapper_write(addr, data);
                     std::clog << "RR (HL)\n";
@@ -369,8 +370,8 @@ int z80::processRotateShiftGroup() {
                 case 0b00100110:
                 {
                     incrementPC(2);
-                    uint16 addr = pairBytes(reg[H], reg[L]);
-                    uint8 data = mapper_read(addr);
+                    uint16_t addr = pairBytes(reg[H], reg[L]);
+                    uint8_t data = mapper_read(addr);
                     SLA(data);
                     mapper_write(addr, data);
                     std::clog << "SLA (HL)\n";
@@ -385,8 +386,8 @@ int z80::processRotateShiftGroup() {
                 case 0b00101110:
                 {
                     incrementPC(2);
-                    uint16 addr = pairBytes(reg[H], reg[L]);
-                    uint8 data = mapper_read(addr);
+                    uint16_t addr = pairBytes(reg[H], reg[L]);
+                    uint8_t data = mapper_read(addr);
                     SRA(data);
                     mapper_write(addr, data);
                     std::clog << "SRA (HL)\n";
@@ -401,8 +402,8 @@ int z80::processRotateShiftGroup() {
                 case 0b00111110:
                 {
                     incrementPC(2);
-                    uint16 addr = pairBytes(reg[H], reg[L]);
-                    uint8 data = mapper_read(addr);
+                    uint16_t addr = pairBytes(reg[H], reg[L]);
+                    uint8_t data = mapper_read(addr);
                     SRL(data);
                     mapper_write(addr, data);
                     std::clog << "SRL (HL)\n";
@@ -419,7 +420,7 @@ int z80::processRotateShiftGroup() {
         */
         case 0b11011101: case 0b11111101:
         {
-            uint16& index = (byte[0] == 0b11011101) ? indexRegisterX : indexRegisterY;
+            uint16_t& index = (byte[0] == 0b11011101) ? indexRegisterX : indexRegisterY;
 
             // [ 1 | 1 | 0 | 0 | 1 | 0 | 1 | 1 ]
             if(byte[1] == 0b11001011) {
@@ -434,8 +435,8 @@ int z80::processRotateShiftGroup() {
                     case 0b00000110:
                     {
                         incrementPC(4);
-                        uint16 addr = index + (sint8)byte[2];
-                        uint8 data = mapper_read(addr);
+                        uint16_t addr = index + (int8_t)byte[2];
+                        uint8_t data = mapper_read(addr);
                         RLC(data);
                         mapper_write(addr, data);
                         std::clog << "RLC (IX+d)\n";
@@ -450,8 +451,8 @@ int z80::processRotateShiftGroup() {
                     case 0b00110110: 
                     {
                         incrementPC(4);
-                        uint16 addr = index + (sint8)byte[2];
-                        uint8 data = mapper_read(addr);
+                        uint16_t addr = index + (int8_t)byte[2];
+                        uint8_t data = mapper_read(addr);
                         SLL(data);
                         mapper_write(addr, data);
                         std::clog << "SLL (IX+d)\n";
@@ -466,8 +467,8 @@ int z80::processRotateShiftGroup() {
                     case 0b00010110:
                     {
                         incrementPC(4);
-                        uint16 addr = index + (sint8)byte[2];
-                        uint8 data = mapper_read(addr);
+                        uint16_t addr = index + (int8_t)byte[2];
+                        uint8_t data = mapper_read(addr);
                         RL(data);
                         mapper_write(addr, data);
                         std::clog << "RL (IX+d)\n";
@@ -482,8 +483,8 @@ int z80::processRotateShiftGroup() {
                     case 0b00001110:
                     {
                         incrementPC(4);
-                        uint16 addr = index + (sint8)byte[2];
-                        uint8 data = mapper_read(addr);
+                        uint16_t addr = index + (int8_t)byte[2];
+                        uint8_t data = mapper_read(addr);
                         RRC(data);
                         mapper_write(addr, data);
                         std::clog << "RRC (IX+d)\n";
@@ -498,8 +499,8 @@ int z80::processRotateShiftGroup() {
                     case 0b00011110:
                     {
                         incrementPC(4);
-                        uint16 addr = index + (sint8)byte[2];
-                        uint8 data = mapper_read(addr);
+                        uint16_t addr = index + (int8_t)byte[2];
+                        uint8_t data = mapper_read(addr);
                         RR(data);
                         mapper_write(addr, data);
                         std::clog << "RR (IX+d)\n";
@@ -514,8 +515,8 @@ int z80::processRotateShiftGroup() {
                     case 0b00100110:
                     {
                         incrementPC(4);
-                        uint16 addr = index + (sint8)byte[2];
-                        uint8 data = mapper_read(addr);
+                        uint16_t addr = index + (int8_t)byte[2];
+                        uint8_t data = mapper_read(addr);
                         SLA(data);
                         mapper_write(addr, data);
                         std::clog << "SLA (IX+d)\n";
@@ -530,8 +531,8 @@ int z80::processRotateShiftGroup() {
                     case 0b00101110:
                     {
                         incrementPC(4);
-                        uint16 addr = index + (sint8)byte[2];
-                        uint8 data = mapper_read(addr);
+                        uint16_t addr = index + (int8_t)byte[2];
+                        uint8_t data = mapper_read(addr);
                         SRA(data);
                         mapper_write(addr, data);
                         std::clog << "SRA (IX+d)\n";
@@ -546,8 +547,8 @@ int z80::processRotateShiftGroup() {
                     case 0b00111110:
                     {
                         incrementPC(4);
-                        uint16 addr = index + (sint8)byte[2];
-                        uint8 data = mapper_read(addr);
+                        uint16_t addr = index + (int8_t)byte[2];
+                        uint8_t data = mapper_read(addr);
                         SRL(data);
                         mapper_write(addr, data);
                         std::clog << "SRL (IX+d)\n";
