@@ -80,8 +80,8 @@ void vdp::drawTile(uint16 tileIndex, int x, int y, bool horizontalFlip, bool ver
             if(paletteIndex == 0 || paletteIndex == 16)
                 continue;
 
-            uint8 final_x = x + dot_x;
-            uint8 final_y = y + dot_y;
+            int final_x = x + dot_x;
+            int final_y = y + dot_y;
 
             if(tileWrap && final_y >= tileMapHeight)
                 final_y -= tileMapHeight;
