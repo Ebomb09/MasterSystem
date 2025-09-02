@@ -1,10 +1,7 @@
 #include "sms.h"
-#include <iomanip>
-#include <stdexcept>
 #include <fstream>
 #include <functional>
-#include <cmath>
-#include <bitset>
+#include <cstring>
 
 sms::sms() {
     using namespace std::placeholders;
@@ -14,7 +11,13 @@ sms::sms() {
     cpu.mapper_read = std::bind(&sms::mapper_read, this, _1);
     cpu.mapper_write = std::bind(&sms::mapper_write, this, _1, _2);
 
-    gpu.getDeviceType = std::bind(&sms::getDeviceType, this);
+    // Memory
+    rom = NULL;
+    romSize = 0;
+    romHeader = -1;
+    std::memset(ram, 0, 8 * 1024);
+    std::memset(sram[0], 0, 16 * 1024);
+    std::memset(sram[1], 0, 16 * 1024);
 
     // Initialize the slot indices
     mapperOptions = 0;
@@ -26,12 +29,21 @@ sms::sms() {
     joypad1 = 0xFF;
     joypad2 = 0xFF;
     joypadStart = 0xFF;
+
+    // Device
+    deviceType = MASTER_SYSTEM_NTSC;
+
+    // Rendering
+    frame = NULL;
 }
 
 sms::~sms() {
     
     if(rom)
         delete [] rom;
+
+    if(frame)
+        SDL_DestroyTexture(frame);
 }
 
 bool sms::loadRom(std::string romPath) {
@@ -77,6 +89,19 @@ bool sms::loadRom(std::string romPath) {
         if(tm == "TMR SEGA")
             romHeader = 0x1FF0;
     }
+
+    if(romHeader == -1)
+        return false;
+    
+    // Parse device information required from the header
+    switch((rom[romHeader+15] & 0b11110000) >> 4) {
+        case 0x3: deviceType = MASTER_SYSTEM_NTSC; break;
+        case 0x4: deviceType = MASTER_SYSTEM_PAL; break;
+        case 0x5: deviceType = GAME_GEAR; break;
+        case 0x6: deviceType = GAME_GEAR; break;
+        case 0x7: deviceType = GAME_GEAR; break;
+    }
+    gpu.deviceType = deviceType;
 
     return true;
 }
@@ -272,7 +297,7 @@ void sms::mapper_write(uint16 addr, uint8 data) {
 uint8 sms::port_read(uint16 addr) {
     addr %= 256;
 
-    if(getDeviceType() == GAME_GEAR && addr == 0x00) {
+    if(deviceType == GAME_GEAR && addr == 0x00) {
         return joypadStart;
 
     }else if(addr >= 0x00 && addr <= 0x3E && addr % 2 == 0) {
@@ -334,24 +359,9 @@ void sms::port_write(uint16 addr, uint8 data) {
     }
 }
 
-int sms::getDeviceType() {
-
-    if(romHeader == -1)
-        return MASTER_SYSTEM_NTSC;
-
-    switch((rom[romHeader+15] & 0b11110000) >> 4) {
-        case 0x3: return MASTER_SYSTEM_NTSC;
-        case 0x4: return MASTER_SYSTEM_PAL;
-        case 0x5: return GAME_GEAR;
-        case 0x6: return GAME_GEAR;
-        case 0x7: return GAME_GEAR;
-    }
-    return MASTER_SYSTEM_NTSC;
-}
-
 int sms::getMasterClock() {
 
-    switch(getDeviceType()) {
+    switch(deviceType) {
 
         case MASTER_SYSTEM_NTSC: 
         case GAME_GEAR:
@@ -387,7 +397,7 @@ void sms::setJoyPadControl(uint8 control, bool val) {
 
         case Console_Reset:     
         {
-            if(getDeviceType() == GAME_GEAR){
+            if(deviceType == GAME_GEAR){
                 bit = 1 << 7;
                 ptr = &joypadStart;
 
@@ -404,4 +414,25 @@ void sms::setJoyPadControl(uint8 control, bool val) {
         if(val)
             (*ptr) |= bit;
     }
+}
+
+void sms::draw(SDL_Renderer* renderer) {
+
+    if(!frame) {
+        frame = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, 256, 240);
+        SDL_SetTextureScaleMode(frame, SDL_SCALEMODE_NEAREST);
+    }
+
+    SDL_UpdateTexture(frame, NULL, gpu.frameBuffer, sizeof(int) * 256);
+
+    SDL_FRect dst {
+        0.f, 
+        0.f, 
+        256.f, 
+        240.f, 
+    };
+
+    SDL_RenderTexture(renderer, frame, NULL, &dst);
+
+    SDL_RenderPresent(renderer);
 }

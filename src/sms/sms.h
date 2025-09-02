@@ -21,6 +21,7 @@ struct sms {
 
     uint8* rom = NULL;
     int romSize;
+    int romHeader;
     uint8 ram[8 * 1024];
     uint8 sram[2][16 * 1024];
 
@@ -74,10 +75,10 @@ struct sms {
 
     int update(SDL_Renderer* renderer, SDL_AudioStream* stream);
 
+    SDL_Texture* frame;
     void draw(SDL_Renderer* renderer);
 
-    int romHeader;
-    int getDeviceType();
+    int deviceType;
     int getMasterClock();
 };
 

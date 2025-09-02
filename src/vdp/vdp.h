@@ -21,6 +21,8 @@ struct vdp {
     };
     uint8 status;
 
+    int deviceType;
+
     bool cycle();
     bool canSendInterrupt();
 
@@ -66,17 +68,13 @@ struct vdp {
     uint16 getNameTableBaseAddress();
     uint16 getSpriteTableBaseAddress();
 
-    int frameBuffer[256][240];
+    int frameBuffer[256 * 240];
 
     void drawScanLine();
     void drawTile(uint16 tileIndex, int x, int y, bool horizontalFlip=false, bool verticalFlip=false, bool spritePalette = false, bool doubleScale = false, bool tileWrap = false);
     void drawTilemap(bool drawPriority);
     void drawSprites();
-
     int getColor(uint8 paletteIndex);
-
-    /* Inputs from console */
-    std::function<int()> getDeviceType;
 };
 
 #endif
