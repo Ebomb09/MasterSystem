@@ -9,12 +9,12 @@
 sms::sms() {
     using namespace std::placeholders;
 
-    cpu.port_read = std::bind(sms::port_read, this, _1);
-    cpu.port_write = std::bind(sms::port_write, this, _1, _2);
-    cpu.mapper_read = std::bind(sms::mapper_read, this, _1);
-    cpu.mapper_write = std::bind(sms::mapper_write, this, _1, _2);
+    cpu.port_read = std::bind(&sms::port_read, this, _1);
+    cpu.port_write = std::bind(&sms::port_write, this, _1, _2);
+    cpu.mapper_read = std::bind(&sms::mapper_read, this, _1);
+    cpu.mapper_write = std::bind(&sms::mapper_write, this, _1, _2);
 
-    gpu.getDeviceType = std::bind(sms::getDeviceType, this);
+    gpu.getDeviceType = std::bind(&sms::getDeviceType, this);
 
     // Initialize the slot indices
     mapperOptions = 0;
