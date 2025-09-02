@@ -11,7 +11,7 @@ My implementation of the Z80 instruction set, SN76489 sound generator, and TMS99
 * [SN76489 Manual](https://map.grauw.nl/resources/sound/texas_instruments_sn76489an.pdf)
 
 # Building
-Requires a copy of SDL3 and json in `ext/`.
+Dependencies are downloaded, and compiled during make process.
 
 1. `mkdir build`
 2. `cd build`
