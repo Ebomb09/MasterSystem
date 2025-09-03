@@ -1,6 +1,6 @@
-#include "psg/psg.h"
+#include "SN76489.h"
 
-psg::psg() {
+SN76489::SN76489() {
 
     // Initialize all muted
     for(int i = 0; i < 4; i ++) {
@@ -14,7 +14,7 @@ psg::psg() {
     latchType = 0;
 }
 
-void psg::write(uint8_t byte) {
+void SN76489::write(uint8_t byte) {
     uint8_t latch = (byte & 0b10000000) >> 7;
     
     switch(latch) {
@@ -75,7 +75,7 @@ void psg::write(uint8_t byte) {
     }
 }
 
-void psg::cycle() {
+void SN76489::cycle() {
     
     // Tones
     for(int i = 0; i < 3; i ++) {
@@ -131,7 +131,7 @@ void psg::cycle() {
     }
 }
 
-float psg::getSample() {
+float SN76489::getSample() {
     float mix = 0.f;
     
     // Tones

@@ -1,12 +1,12 @@
-#ifndef Z80_EMULATOR_H
-#define Z80_EMULATOR_H
+#ifndef Z80_CPU_H
+#define Z80_CPU_H
 
 #include <cstdint>
 #include <functional>
 
-struct z80 {
+struct Z80 {
 
-    z80();
+    Z80();
 
     enum RegisterNames {
         A, F, B, C, D, E, H, L, A_p, F_p, B_p, C_p, D_p, E_p, H_p, L_p

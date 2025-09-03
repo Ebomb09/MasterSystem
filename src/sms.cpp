@@ -1,5 +1,4 @@
-#include "sms/sms.h"
-#include "common/devices.h"
+#include "sms.h"
 #include <iostream>
 #include <fstream>
 #include <functional>
@@ -31,9 +30,6 @@ sms::sms() {
     joypad1 = 0xFF;
     joypad2 = 0xFF;
     joypadStart = 0xFF;
-
-    // Device
-    deviceType = MASTER_SYSTEM_NTSC;
 
     // Rendering
     frame = NULL;
@@ -97,13 +93,12 @@ bool sms::loadRom(std::string romPath) {
     
     // Parse device information required from the header
     switch((rom[romHeader+15] & 0b11110000) >> 4) {
-        case 0x3: deviceType = MASTER_SYSTEM_NTSC; break;
-        case 0x4: deviceType = MASTER_SYSTEM_PAL; break;
-        case 0x5: deviceType = GAME_GEAR; break;
-        case 0x6: deviceType = GAME_GEAR; break;
-        case 0x7: deviceType = GAME_GEAR; break;
+        case 0x3: gpu.videoFormat = TMS9918A::MASTERSYSTEM_NTSC; break;
+        case 0x4: gpu.videoFormat = TMS9918A::MASTERSYSTEM_PAL; break;
+        case 0x5: gpu.videoFormat = TMS9918A::GAMEGEAR_NTSC; break;
+        case 0x6: gpu.videoFormat = TMS9918A::GAMEGEAR_NTSC; break;
+        case 0x7: gpu.videoFormat = TMS9918A::GAMEGEAR_NTSC; break;
     }
-    gpu.deviceType = deviceType;
 
     return true;
 }
@@ -148,8 +143,8 @@ int sms::update(SDL_Renderer* renderer, SDL_AudioStream* stream) {
     // Generate the sound waves
     std::vector<float> samples(totalClock / 15);
     for(int i = 0; i < samples.size(); i ++ ) {
-        audio.cycle();
-        samples[i] = audio.getSample();
+        psg.cycle();
+        samples[i] = psg.getSample();
     }
 
     // Calculate the theoretical time(ms) to clear a VBlank 
@@ -299,7 +294,7 @@ void sms::mapper_write(uint16_t addr, uint8_t data) {
 uint8_t sms::port_read(uint16_t addr) {
     addr %= 256;
 
-    if(deviceType == GAME_GEAR && addr == 0x00) {
+    if(gpu.videoFormat == TMS9918A::GAMEGEAR_NTSC && addr == 0x00) {
         return joypadStart;
 
     }else if(addr >= 0x00 && addr <= 0x3E && addr % 2 == 0) {
@@ -348,7 +343,7 @@ void sms::port_write(uint16_t addr, uint8_t data) {
 
 
     }else if(addr >= 0x40 && addr <= 0x7F) {
-        audio.write(data);
+        psg.write(data);
 
 
     }else if(addr >= 0x80 && addr <= 0xBE && addr % 2 == 0) {
@@ -363,13 +358,13 @@ void sms::port_write(uint16_t addr, uint8_t data) {
 
 int sms::getMasterClock() {
 
-    switch(deviceType) {
+    switch(gpu.videoFormat) {
 
-        case MASTER_SYSTEM_NTSC: 
-        case GAME_GEAR:
+        case TMS9918A::MASTERSYSTEM_NTSC: 
+        case TMS9918A::GAMEGEAR_NTSC:
             return 53693100;
 
-        case MASTER_SYSTEM_PAL:
+        case TMS9918A::MASTERSYSTEM_PAL:
             return 53203400;
     }
     return 1;
@@ -399,7 +394,7 @@ void sms::setJoyPadControl(uint8_t control, bool val) {
 
         case Console_Reset:     
         {
-            if(deviceType == GAME_GEAR){
+            if(gpu.videoFormat == TMS9918A::GAMEGEAR_NTSC){
                 bit = 1 << 7;
                 ptr = &joypadStart;
 

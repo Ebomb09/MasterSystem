@@ -1,9 +1,9 @@
-#include "z80/z80.h"
-#include "common/utilities.h"
+#include "Z80.h"
+#include "utilities.h"
 #include <bitset>
 #include <iostream>
 
-int z80::processInputOutputGroup() {
+int Z80::processInputOutputGroup() {
 
     uint8_t byte[4] {
         mapper_read(programCounter),

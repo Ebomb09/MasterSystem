@@ -1,9 +1,9 @@
-#include "z80/z80.h"
-#include "common/utilities.h"
+#include "Z80.h"
+#include "utilities.h"
 #include <bitset>
 #include <iostream>
 
-int z80::processRotateShiftGroup() {
+int Z80::processRotateShiftGroup() {
 
     uint8_t byte[4] {
         mapper_read(programCounter),
@@ -171,7 +171,7 @@ int z80::processRotateShiftGroup() {
                 }
 
 
-                /* SLL r (Undocumented, https://jnz.dk/z80/sll_r.html)
+                /* SLL r (Undocumented, https://jnz.dk/Z80/sll_r.html)
                 
                     [ 0 | 0 | 1 | 1 | 0 | <   r   > ]
                 */
@@ -299,7 +299,7 @@ int z80::processRotateShiftGroup() {
                 }
 
 
-                /* SLL (HL) (Undocumented, https://jnz.dk/z80/sll_hlp.html)
+                /* SLL (HL) (Undocumented, https://jnz.dk/Z80/sll_hlp.html)
                 
                     [ 0 | 0 | 1 | 1 | 0 | 1 | 1 | 0 ]
                 */
@@ -444,7 +444,7 @@ int z80::processRotateShiftGroup() {
                     }
 
 
-                    /* SLL (IX+d) (Undocumented, https://jnz.dk/z80/sll_ixdp.html)
+                    /* SLL (IX+d) (Undocumented, https://jnz.dk/Z80/sll_ixdp.html)
                     
                         [ 0 | 0 | 1 | 1 | 0 | 1 | 1 | 0 ]
                     */

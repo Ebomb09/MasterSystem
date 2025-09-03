@@ -1,8 +1,8 @@
-#include "z80/z80.h"
-#include "common/utilities.h"
+#include "Z80.h"
+#include "utilities.h"
 #include <iostream>
 
-int z80::processJumpGroup() {
+int Z80::processJumpGroup() {
 
     uint8_t byte[4] {
         mapper_read(programCounter),

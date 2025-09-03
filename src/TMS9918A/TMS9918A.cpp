@@ -1,8 +1,7 @@
-#include "vdp/vdp.h"
-#include "common/utilities.h"
-#include "common/devices.h"
+#include "TMS9918A.h"
+#include "utilities.h"
 
-vdp::vdp() {
+TMS9918A::TMS9918A() {
     controlOffset = 0;
 
     requestFrameInterrupt = false;
@@ -15,10 +14,11 @@ vdp::vdp() {
     vCounter = 0;
 
     mode = 4;
-    deviceType = MASTER_SYSTEM_NTSC;
+
+    videoFormat = MASTERSYSTEM_NTSC;
 }
 
-void vdp::writeControlPort(uint8_t data) {
+void TMS9918A::writeControlPort(uint8_t data) {
 
     if(controlOffset == 0) {
         controlWord = (controlWord & 0xFF00) | data;
@@ -55,7 +55,7 @@ void vdp::writeControlPort(uint8_t data) {
     }
 }
 
-uint8_t vdp::readControlPort() {
+uint8_t TMS9918A::readControlPort() {
     controlOffset = 0;
 
     requestFrameInterrupt = false;
@@ -67,7 +67,7 @@ uint8_t vdp::readControlPort() {
     return res;
 }
 
-uint8_t vdp::readDataPort() {
+uint8_t TMS9918A::readDataPort() {
     controlOffset = 0;
 
     // Return the value in the current buffer and then update, and increment
@@ -79,7 +79,7 @@ uint8_t vdp::readDataPort() {
     return res;
 }
 
-void vdp::writeDataPort(uint8_t data) {
+void TMS9918A::writeDataPort(uint8_t data) {
     controlOffset = 0;
 
     switch(getControlCode()) {
@@ -103,15 +103,15 @@ void vdp::writeDataPort(uint8_t data) {
     }
 }
 
-uint8_t vdp::getControlCode() {
+uint8_t TMS9918A::getControlCode() {
     return (controlWord & 0b1100000000000000) >> 14;
 }
 
-uint16_t vdp::getControlVRAMAddress() {
+uint16_t TMS9918A::getControlVRAMAddress() {
     return (controlWord & 0b0011111111111111);
 }
 
-void vdp::incrementControlVRAMAddress() {
+void TMS9918A::incrementControlVRAMAddress() {
     uint16_t addr = getControlVRAMAddress();
     addr += 1;
 
@@ -122,15 +122,15 @@ void vdp::incrementControlVRAMAddress() {
     controlWord = (controlWord & 0b1100000000000000) + addr;
 }
 
-uint8_t vdp::getControlRegisterIndex() {
+uint8_t TMS9918A::getControlRegisterIndex() {
     return (controlWord & 0b0000111100000000) >> 8;
 }
 
-uint8_t vdp::getControlRegisterData() {
+uint8_t TMS9918A::getControlRegisterData() {
     return (controlWord & 0b0000000011111111);
 }
 
-bool vdp::cycle() {
+bool TMS9918A::cycle() {
     bool clearVBlank = false;
     bool enableLineInterrupts   = reg[0x0] & 0b00010000;
     bool enableFrameInterrupts  = reg[0x1] & 0b00100000;
@@ -167,18 +167,18 @@ bool vdp::cycle() {
     return clearVBlank;
 }
 
-bool vdp::canSendInterrupt() {
+bool TMS9918A::canSendInterrupt() {
     bool enableLineInterrupts   = reg[0x0] & 0b00010000;
     bool enableFrameInterrupts  = reg[0x1] & 0b00100000;
 
     return (enableFrameInterrupts && requestFrameInterrupt) || (enableLineInterrupts && requestLineInterrupt);
 }
 
-uint16_t vdp::getActiveDisplayWidth() {
+uint16_t TMS9918A::getActiveDisplayWidth() {
     return 256;
 }
 
-uint16_t vdp::getActiveDisplayHeight() {
+uint16_t TMS9918A::getActiveDisplayHeight() {
 
     if(reg[0x1] & 0b00001000) {
         return 240;
@@ -189,11 +189,11 @@ uint16_t vdp::getActiveDisplayHeight() {
     return 192;
 }
 
-uint16_t vdp::getScreenWidth() {
+uint16_t TMS9918A::getScreenWidth() {
 
-    switch(deviceType) {
+    switch(videoFormat) {
 
-        case GAME_GEAR:
+        case GAMEGEAR_NTSC:
             return 160;
 
         default:
@@ -201,11 +201,11 @@ uint16_t vdp::getScreenWidth() {
     }
 }
 
-uint16_t vdp::getScreenHeight() {
+uint16_t TMS9918A::getScreenHeight() {
 
-    switch(deviceType) {
+    switch(videoFormat) {
 
-        case GAME_GEAR:
+        case GAMEGEAR_NTSC:
             return 144;
 
         default:
@@ -213,23 +213,23 @@ uint16_t vdp::getScreenHeight() {
     }
 }
 
-uint16_t vdp::getScreenOffsetX() {
+uint16_t TMS9918A::getScreenOffsetX() {
 
-    if(deviceType == GAME_GEAR)
+    if(videoFormat == GAMEGEAR_NTSC)
         return 48;
 
     return 0;
 }
 
-uint16_t vdp::getScreenOffsetY() {
+uint16_t TMS9918A::getScreenOffsetY() {
 
-    if(deviceType == GAME_GEAR)
+    if(videoFormat == GAMEGEAR_NTSC)
         return 24;
 
     return 0;
 }
 
-uint16_t vdp::getNameTableBaseAddress() {
+uint16_t TMS9918A::getNameTableBaseAddress() {
 
     if(getActiveDisplayHeight() != 192) {
         return ((reg[0x2] & 0b00001100) >> 2) * 0x1000 + 0x0700;
@@ -237,21 +237,21 @@ uint16_t vdp::getNameTableBaseAddress() {
     return ((reg[0x2] & 0b00001110) >> 1) * 0x0800;
 }
 
-uint16_t vdp::getSpriteTableBaseAddress() {
+uint16_t TMS9918A::getSpriteTableBaseAddress() {
     return ((reg[0x5] & 0b01111110) >> 1) * 0x0100;
 }
 
-uint8_t vdp::readHCounter() {
+uint8_t TMS9918A::readHCounter() {
     return hCounter >> 1;
 }
 
-uint8_t vdp::readVCounter() {
+uint8_t TMS9918A::readVCounter() {
 
-    switch(deviceType) {
+    switch(videoFormat) {
 
         // NTSC
-        case MASTER_SYSTEM_NTSC:
-        case GAME_GEAR:
+        case MASTERSYSTEM_NTSC:
+        case GAMEGEAR_NTSC:
         {
 
             switch(getActiveDisplayHeight()) {
@@ -284,7 +284,7 @@ uint8_t vdp::readVCounter() {
         }
 
         // PAL
-        case MASTER_SYSTEM_PAL:
+        case MASTERSYSTEM_PAL:
         {
 
             switch(getActiveDisplayHeight()) {
@@ -325,22 +325,22 @@ uint8_t vdp::readVCounter() {
     return 0;
 }
 
-uint16_t vdp::getHCounterLimit(){
+uint16_t TMS9918A::getHCounterLimit(){
     return 342;
 }
 
-uint16_t vdp::getVCounterLimit(){
+uint16_t TMS9918A::getVCounterLimit(){
 
     // NTSC
-    switch(deviceType) {
+    switch(videoFormat) {
 
-        case MASTER_SYSTEM_NTSC:
-        case GAME_GEAR:
+        case MASTERSYSTEM_NTSC:
+        case GAMEGEAR_NTSC:
         {
             return 262;
         }
 
-        case MASTER_SYSTEM_PAL:
+        case MASTERSYSTEM_PAL:
         {
             return 313;
         }

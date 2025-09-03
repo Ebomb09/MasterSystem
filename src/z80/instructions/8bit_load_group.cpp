@@ -1,8 +1,8 @@
-#include "z80/z80.h"
-#include "common/utilities.h"
+#include "Z80.h"
+#include "utilities.h"
 #include <iostream>
 
-int z80::process8BitLoadGroup() {
+int Z80::process8BitLoadGroup() {
 
     uint8_t byte[4] {
         mapper_read(programCounter),
@@ -315,7 +315,7 @@ int z80::process8BitLoadGroup() {
                 }
 
 
-                /* LD IXl, n (Undocumented, http://www.z80.info/z80undoc.htm)
+                /* LD IXl, n (Undocumented, http://www.Z80.info/Z80undoc.htm)
 
                     [ 0 | 0 | 1 | 0 | 1 | 1 | 1 | 0 ]
                     [ <   -   -   n   -   -   -   > ]
@@ -330,7 +330,7 @@ int z80::process8BitLoadGroup() {
                 }
 
 
-                /* LD IXh, n (Undocumented, http://www.z80.info/z80undoc.htm)
+                /* LD IXh, n (Undocumented, http://www.Z80.info/Z80undoc.htm)
 
                     [ 0 | 0 | 1 | 0 | 0 | 1 | 1 | 0 ]
                     [ <   -   -   n   -   -   -   > ]
@@ -345,7 +345,7 @@ int z80::process8BitLoadGroup() {
                 }
 
 
-                /* LD q, IXl (Undocumented, http://www.z80.info/z80undoc.htm)
+                /* LD q, IXl (Undocumented, http://www.Z80.info/Z80undoc.htm)
 
                     [ 0 | 1 | <   q   > | 1 | 0 | 1 ]
                 */
@@ -369,7 +369,7 @@ int z80::process8BitLoadGroup() {
                 }
 
 
-                /* LD q, IXh (Undocumented, http://www.z80.info/z80undoc.htm)
+                /* LD q, IXh (Undocumented, http://www.Z80.info/Z80undoc.htm)
 
                     [ 0 | 1 | <   q   > | 1 | 0 | 0 ]
                 */

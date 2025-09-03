@@ -1,12 +1,12 @@
-#ifndef SEGA_VDP_EMULATOR_H
-#define SEGA_VDP_EMULATOR_H
+#ifndef TMS9918A_PROCESSOR_H
+#define TMS9918A_PROCESSOR_H
 
 #include <cstdint>
 #include <functional>
 
-struct vdp {
+struct TMS9918A {
 
-    vdp();
+    TMS9918A();
 
     uint8_t reg[16];
     uint8_t mode;
@@ -21,7 +21,10 @@ struct vdp {
     };
     uint8_t status;
 
-    uint8_t deviceType;
+    enum VideoFormat {
+        MASTERSYSTEM_NTSC, MASTERSYSTEM_PAL, GAMEGEAR_NTSC
+    };
+    uint8_t videoFormat;
 
     bool cycle();
     bool canSendInterrupt();

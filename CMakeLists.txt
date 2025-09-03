@@ -20,19 +20,19 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(sdl3 json)
 
 # Emulated Processors
-add_subdirectory(src/z80)
-add_subdirectory(src/vdp)
-add_subdirectory(src/psg)
+add_subdirectory(src/Z80)
+add_subdirectory(src/TMS9918A)
+add_subdirectory(src/SN76489)
 
 # Emulation Frontend
 add_executable(sms 
     src/main.cpp 
-    src/sms/sms.cpp
+    src/sms.cpp
 )
 target_include_directories(sms PRIVATE src)
-target_link_libraries(sms PRIVATE z80 psg vdp SDL3-shared)
+target_link_libraries(sms PRIVATE Z80 SN76489 TMS9918A SDL3-shared)
 
 # Z80 CPU test
 add_executable(test src/test.cpp)
 target_include_directories(test PRIVATE src)
-target_link_libraries(test PRIVATE z80 SDL3-shared nlohmann_json)
+target_link_libraries(test PRIVATE Z80 SDL3-shared nlohmann_json)

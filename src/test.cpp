@@ -1,4 +1,4 @@
-#include "z80/z80.h"
+#include "Z80/Z80.h"
 #include <filesystem>
 #include <iostream>
 #include <fstream>
@@ -25,7 +25,7 @@ void port_write(uint16_t addr, uint8_t data) {
     port[addr] = data;
 }
 
-bool run_tests(z80& cpu, std::string path) {
+bool run_tests(Z80& cpu, std::string path) {
     std::fstream file(path);
     nlohmann::json json = nlohmann::json::parse(file);
     file.close();
@@ -36,14 +36,14 @@ bool run_tests(z80& cpu, std::string path) {
         cpu.stackPointer        = test["initial"]["sp"];
         cpu.memoryRefresh       = test["initial"]["r"];
         cpu.interruptVector     = test["initial"]["i"];
-        cpu.reg[z80::A]         = test["initial"]["a"];
-        cpu.reg[z80::B]         = test["initial"]["b"];
-        cpu.reg[z80::C]         = test["initial"]["c"];
-        cpu.reg[z80::D]         = test["initial"]["d"];
-        cpu.reg[z80::E]         = test["initial"]["e"];
-        cpu.reg[z80::F]         = test["initial"]["f"];
-        cpu.reg[z80::H]         = test["initial"]["h"];
-        cpu.reg[z80::L]         = test["initial"]["l"];
+        cpu.reg[Z80::A]         = test["initial"]["a"];
+        cpu.reg[Z80::B]         = test["initial"]["b"];
+        cpu.reg[Z80::C]         = test["initial"]["c"];
+        cpu.reg[Z80::D]         = test["initial"]["d"];
+        cpu.reg[Z80::E]         = test["initial"]["e"];
+        cpu.reg[Z80::F]         = test["initial"]["f"];
+        cpu.reg[Z80::H]         = test["initial"]["h"];
+        cpu.reg[Z80::L]         = test["initial"]["l"];
         cpu.indexRegisterX      = test["initial"]["ix"];
         cpu.indexRegisterY      = test["initial"]["iy"];
         cpu.interruptMode       = test["initial"]["im"];
@@ -53,14 +53,14 @@ bool run_tests(z80& cpu, std::string path) {
         uint16_t bc_              = test["initial"]["bc_"];
         uint16_t de_              = test["initial"]["de_"];
         uint16_t hl_              = test["initial"]["hl_"];
-        cpu.reg[z80::A_p]       = af_ >> 8;
-        cpu.reg[z80::F_p]       = af_;
-        cpu.reg[z80::B_p]       = bc_ >> 8;
-        cpu.reg[z80::C_p]       = bc_;
-        cpu.reg[z80::D_p]       = de_ >> 8;
-        cpu.reg[z80::E_p]       = de_;
-        cpu.reg[z80::H_p]       = hl_ >> 8;
-        cpu.reg[z80::L_p]       = hl_;
+        cpu.reg[Z80::A_p]       = af_ >> 8;
+        cpu.reg[Z80::F_p]       = af_;
+        cpu.reg[Z80::B_p]       = bc_ >> 8;
+        cpu.reg[Z80::C_p]       = bc_;
+        cpu.reg[Z80::D_p]       = de_ >> 8;
+        cpu.reg[Z80::E_p]       = de_;
+        cpu.reg[Z80::H_p]       = hl_ >> 8;
+        cpu.reg[Z80::L_p]       = hl_;
     
         std::memset(memory, 0, 64*1024);
         for(auto& ramEntry : test["initial"]["ram"]) {
@@ -91,46 +91,46 @@ bool run_tests(z80& cpu, std::string path) {
             ok = false;
         }
     
-        if(cpu.reg[z80::A] != test["final"]["a"]) {
-            std::clog << "\t- Mismatch reg[A] RESULT: " << (int)cpu.reg[z80::A] << ", ACTUAL: " << (int)test["final"]["a"] << "\n";
+        if(cpu.reg[Z80::A] != test["final"]["a"]) {
+            std::clog << "\t- Mismatch reg[A] RESULT: " << (int)cpu.reg[Z80::A] << ", ACTUAL: " << (int)test["final"]["a"] << "\n";
             ok = false;
         }
     
-        if(cpu.reg[z80::B] != test["final"]["b"]) {
-            std::clog << "\t- Mismatch reg[B] RESULT: " << (int)cpu.reg[z80::B] << ", ACTUAL: " << (int)test["final"]["b"] << "\n";
+        if(cpu.reg[Z80::B] != test["final"]["b"]) {
+            std::clog << "\t- Mismatch reg[B] RESULT: " << (int)cpu.reg[Z80::B] << ", ACTUAL: " << (int)test["final"]["b"] << "\n";
             ok = false;
         }
     
-        if(cpu.reg[z80::C] != test["final"]["c"]) {
-            std::clog << "\t- Mismatch reg[C] RESULT: " << (int)cpu.reg[z80::C] << ", ACTUAL: " << (int)test["final"]["c"] << "\n";
+        if(cpu.reg[Z80::C] != test["final"]["c"]) {
+            std::clog << "\t- Mismatch reg[C] RESULT: " << (int)cpu.reg[Z80::C] << ", ACTUAL: " << (int)test["final"]["c"] << "\n";
             ok = false;
         }
     
-        if(cpu.reg[z80::D] != test["final"]["d"]) {
-            std::clog << "\t- Mismatch reg[D] RESULT: " << (int)cpu.reg[z80::D] << ", ACTUAL: " << (int)test["final"]["d"] << "\n";
+        if(cpu.reg[Z80::D] != test["final"]["d"]) {
+            std::clog << "\t- Mismatch reg[D] RESULT: " << (int)cpu.reg[Z80::D] << ", ACTUAL: " << (int)test["final"]["d"] << "\n";
             ok = false;
         }
     
-        if(cpu.reg[z80::E] != test["final"]["e"]) {
-            std::clog << "\t- Mismatch reg[E] RESULT: " << (int)cpu.reg[z80::E] << ", ACTUAL: " << (int)test["final"]["e"] << "\n";
+        if(cpu.reg[Z80::E] != test["final"]["e"]) {
+            std::clog << "\t- Mismatch reg[E] RESULT: " << (int)cpu.reg[Z80::E] << ", ACTUAL: " << (int)test["final"]["e"] << "\n";
             ok = false;
         }
     
         // Do not care about the undocumented flags
-        cpu.reg[z80::F] &= 0b11010111;
+        cpu.reg[Z80::F] &= 0b11010111;
         uint8_t real_f = (int)test["final"]["f"] & 0b11010111;
-        if(cpu.reg[z80::F] != real_f) {
-            std::clog << "\t- Mismatch reg[F] RESULT: " << (int)cpu.reg[z80::F] << ", ACTUAL: " << (int)real_f << "\n";
+        if(cpu.reg[Z80::F] != real_f) {
+            std::clog << "\t- Mismatch reg[F] RESULT: " << (int)cpu.reg[Z80::F] << ", ACTUAL: " << (int)real_f << "\n";
             ok = false;
         }
     
-        if(cpu.reg[z80::H] != test["final"]["h"]) {
-            std::clog << "\t- Mismatch reg[H] RESULT: " << (int)cpu.reg[z80::H] << ", ACTUAL: " << (int)test["final"]["h"] << "\n";
+        if(cpu.reg[Z80::H] != test["final"]["h"]) {
+            std::clog << "\t- Mismatch reg[H] RESULT: " << (int)cpu.reg[Z80::H] << ", ACTUAL: " << (int)test["final"]["h"] << "\n";
             ok = false;
         }
     
-        if(cpu.reg[z80::L] != test["final"]["l"]) {
-            std::clog << "\t- Mismatch reg[L] RESULT: " << (int)cpu.reg[z80::L] << ", ACTUAL: " << (int)test["final"]["l"] << "\n";
+        if(cpu.reg[Z80::L] != test["final"]["l"]) {
+            std::clog << "\t- Mismatch reg[L] RESULT: " << (int)cpu.reg[Z80::L] << ", ACTUAL: " << (int)test["final"]["l"] << "\n";
             ok = false;
         }
     
@@ -165,46 +165,46 @@ bool run_tests(z80& cpu, std::string path) {
         hl_                  = test["final"]["hl_"];
 
 
-        if(cpu.reg[z80::A_p] != (af_ >> 8)) {
-            std::clog << "\t- Mismatch reg[A'] RESULT: " << (int)cpu.reg[z80::A_p] << ", ACTUAL: " << (int)(af_ >> 8) << "\n";
+        if(cpu.reg[Z80::A_p] != (af_ >> 8)) {
+            std::clog << "\t- Mismatch reg[A'] RESULT: " << (int)cpu.reg[Z80::A_p] << ", ACTUAL: " << (int)(af_ >> 8) << "\n";
             ok = false;
         }
     
         // Do not care about the undocumented flags
-        cpu.reg[z80::F_p] &= 0b11010111;
+        cpu.reg[Z80::F_p] &= 0b11010111;
         uint8_t real_fp = af_ & 0b11010111;
-        if(cpu.reg[z80::F_p] != real_fp) {
-            std::clog << "\t- Mismatch reg[F'] RESULT: " << (int)cpu.reg[z80::F_p] << ", ACTUAL: " << (int)real_fp << "\n";
+        if(cpu.reg[Z80::F_p] != real_fp) {
+            std::clog << "\t- Mismatch reg[F'] RESULT: " << (int)cpu.reg[Z80::F_p] << ", ACTUAL: " << (int)real_fp << "\n";
             ok = false;
         }
     
-        if(cpu.reg[z80::B_p] != bc_ >> 8) {
-            std::clog << "\t- Mismatch reg[B'] RESULT: " << (int)cpu.reg[z80::B_p] << ", ACTUAL: " << (int)(bc_ >> 8) << "\n";
+        if(cpu.reg[Z80::B_p] != bc_ >> 8) {
+            std::clog << "\t- Mismatch reg[B'] RESULT: " << (int)cpu.reg[Z80::B_p] << ", ACTUAL: " << (int)(bc_ >> 8) << "\n";
             ok = false;
         }
     
-        if(cpu.reg[z80::C_p] != (uint8_t)bc_) {
-            std::clog << "\t- Mismatch reg[C'] RESULT: " << (int)cpu.reg[z80::C_p] << ", ACTUAL: " << (int)(uint8_t)bc_ << "\n";
+        if(cpu.reg[Z80::C_p] != (uint8_t)bc_) {
+            std::clog << "\t- Mismatch reg[C'] RESULT: " << (int)cpu.reg[Z80::C_p] << ", ACTUAL: " << (int)(uint8_t)bc_ << "\n";
             ok = false;
         }
     
-        if(cpu.reg[z80::D_p] != de_ >> 8) {
-            std::clog << "\t- Mismatch reg[D'] RESULT: " << (int)cpu.reg[z80::D_p] << ", ACTUAL: " << (int)(de_ >> 8) << "\n";
+        if(cpu.reg[Z80::D_p] != de_ >> 8) {
+            std::clog << "\t- Mismatch reg[D'] RESULT: " << (int)cpu.reg[Z80::D_p] << ", ACTUAL: " << (int)(de_ >> 8) << "\n";
             ok = false;
         }
     
-        if(cpu.reg[z80::E_p] != (uint8_t)de_) {
-            std::clog << "\t- Mismatch reg[E'] RESULT: " << (int)cpu.reg[z80::E_p] << ", ACTUAL: " << (int)(uint8_t)de_ << "\n";
+        if(cpu.reg[Z80::E_p] != (uint8_t)de_) {
+            std::clog << "\t- Mismatch reg[E'] RESULT: " << (int)cpu.reg[Z80::E_p] << ", ACTUAL: " << (int)(uint8_t)de_ << "\n";
             ok = false;
         }
     
-        if(cpu.reg[z80::H_p] != hl_ >> 8) {
-            std::clog << "\t- Mismatch reg[H'] RESULT: " << (int)cpu.reg[z80::H_p] << ", ACTUAL: " << (int)(uint8_t)hl_ << "\n";
+        if(cpu.reg[Z80::H_p] != hl_ >> 8) {
+            std::clog << "\t- Mismatch reg[H'] RESULT: " << (int)cpu.reg[Z80::H_p] << ", ACTUAL: " << (int)(uint8_t)hl_ << "\n";
             ok = false;
         }
     
-        if(cpu.reg[z80::L_p] != (uint8_t)hl_) {
-            std::clog << "\t- Mismatch reg[L'p] RESULT: " << (int)cpu.reg[z80::L_p] << ", ACTUAL: " << (int)(uint8_t)hl_ << "\n";
+        if(cpu.reg[Z80::L_p] != (uint8_t)hl_) {
+            std::clog << "\t- Mismatch reg[L'p] RESULT: " << (int)cpu.reg[Z80::L_p] << ", ACTUAL: " << (int)(uint8_t)hl_ << "\n";
             ok = false;
         }
     
@@ -240,7 +240,7 @@ int main(int argc, char* argv[]) {
     std::clog.rdbuf(log.rdbuf());
 
     // Create the emulator and allocate 64kb for tests
-    z80 cpu;
+    Z80 cpu;
     cpu.mapper_read = mapper_read;
     cpu.mapper_write = mapper_write;
     cpu.port_read = mapper_read;

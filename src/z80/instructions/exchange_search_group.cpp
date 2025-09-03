@@ -1,9 +1,9 @@
-#include "z80/z80.h"
-#include "common/utilities.h"
+#include "Z80.h"
+#include "utilities.h"
 #include <algorithm>
 #include <iostream>
 
-int z80::processExchangeSearchGroup() {
+int Z80::processExchangeSearchGroup() {
 
     uint8_t byte[4] {
         mapper_read(programCounter),

@@ -1,9 +1,9 @@
-#include "z80/z80.h"
-#include "common/utilities.h"
+#include "Z80.h"
+#include "utilities.h"
 #include <iostream>
 #include <bitset>
 
-int z80::process8BitArithmeticGroup() {
+int Z80::process8BitArithmeticGroup() {
 
     uint8_t byte[4] {
         mapper_read(programCounter),
@@ -578,7 +578,7 @@ int z80::process8BitArithmeticGroup() {
                 }
 
 
-                /* INC IXh/IXl (Undocumented, http://www.z80.info/z80undoc.htm)
+                /* INC IXh/IXl (Undocumented, http://www.Z80.info/Z80undoc.htm)
                 
                     [ 0 | 0 | 1 | 0 | b | 1 | 0 | 0 ]
                 */
@@ -600,7 +600,7 @@ int z80::process8BitArithmeticGroup() {
                 }
 
 
-                /* DEC IXh/IXl (Undocumented, http://www.z80.info/z80undoc.htm)
+                /* DEC IXh/IXl (Undocumented, http://www.Z80.info/Z80undoc.htm)
                 
                     [ 0 | 0 | 1 | 0 | b | 1 | 0 | 1 ]
                 */
@@ -622,7 +622,7 @@ int z80::process8BitArithmeticGroup() {
                 }
 
 
-                /* ADD A, IXl/IXh (Undocumented, http://www.z80.info/z80undoc.htm)
+                /* ADD A, IXl/IXh (Undocumented, http://www.Z80.info/Z80undoc.htm)
                 
                     [ 1 | 0 | 0 | 0 | 0 | 1 | 0 | b ]
                 */
@@ -640,7 +640,7 @@ int z80::process8BitArithmeticGroup() {
                 }
 
 
-                /* ADC A, IXl/IXh (Undocumented, http://www.z80.info/z80undoc.htm)
+                /* ADC A, IXl/IXh (Undocumented, http://www.Z80.info/Z80undoc.htm)
                 
                     [ 1 | 0 | 0 | 0 | 1 | 1 | 0 | b ]
                 */
@@ -658,7 +658,7 @@ int z80::process8BitArithmeticGroup() {
                 }
 
 
-                /* SUB A, IXl/IXh (Undocumented, http://www.z80.info/z80undoc.htm)
+                /* SUB A, IXl/IXh (Undocumented, http://www.Z80.info/Z80undoc.htm)
                 
                     [ 1 | 0 | 0 | 1 | 0 | 1 | 0 | b ]
                 */
@@ -676,7 +676,7 @@ int z80::process8BitArithmeticGroup() {
                 }
 
 
-                /* SBC A, IXl/IXh (Undocumented, http://www.z80.info/z80undoc.htm)
+                /* SBC A, IXl/IXh (Undocumented, http://www.Z80.info/Z80undoc.htm)
                 
                     [ 1 | 0 | 0 | 1 | 1 | 1 | 0 | b ]
                 */
@@ -694,7 +694,7 @@ int z80::process8BitArithmeticGroup() {
                 }
 
 
-                /* AND A, IXl/IXh (Undocumented, http://www.z80.info/z80undoc.htm)
+                /* AND A, IXl/IXh (Undocumented, http://www.Z80.info/Z80undoc.htm)
                 
                     [ 1 | 0 | 1 | 0 | 0 | 1 | 0 | b ]
                 */
@@ -712,7 +712,7 @@ int z80::process8BitArithmeticGroup() {
                 }
 
 
-                /* XOR A, IXl/IXh (Undocumented, http://www.z80.info/z80undoc.htm)
+                /* XOR A, IXl/IXh (Undocumented, http://www.Z80.info/Z80undoc.htm)
                 
                     [ 1 | 0 | 1 | 0 | 1 | 1 | 0 | b ]
                 */
@@ -730,7 +730,7 @@ int z80::process8BitArithmeticGroup() {
                 }
 
 
-                /* OR A, IXl/IXh (Undocumented, http://www.z80.info/z80undoc.htm)
+                /* OR A, IXl/IXh (Undocumented, http://www.Z80.info/Z80undoc.htm)
                 
                     [ 1 | 0 | 1 | 1 | 0 | 1 | 0 | b ]
                 */
@@ -748,7 +748,7 @@ int z80::process8BitArithmeticGroup() {
                 }
 
 
-                /* CP A, IXl/IXh (Undocumented, http://www.z80.info/z80undoc.htm)
+                /* CP A, IXl/IXh (Undocumented, http://www.Z80.info/Z80undoc.htm)
                 
                     [ 1 | 0 | 1 | 1 | 1 | 1 | 0 | b ]
                 */

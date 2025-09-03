@@ -1,9 +1,9 @@
 #ifndef SMS_STRUCT_H
 #define SMS_STRUCT_H
 
-#include "z80/z80.h"
-#include "vdp/vdp.h"
-#include "psg/psg.h"
+#include "Z80/Z80.h"
+#include "TMS9918A/TMS9918A.h"
+#include "SN76489/SN76489.h"
 
 #include <string>
 
@@ -14,9 +14,9 @@ struct sms {
     sms();
     ~sms();
 
-    z80 cpu;
-    vdp gpu;
-    psg audio;
+    Z80 cpu;
+    TMS9918A gpu;
+    SN76489 psg;
 
     uint8_t* rom = NULL;
     int romSize;
@@ -77,7 +77,6 @@ struct sms {
     SDL_Texture* frame;
     void draw(SDL_Renderer* renderer);
 
-    int deviceType;
     int getMasterClock();
 };
 

@@ -1,5 +1,5 @@
-add_library(z80 STATIC 
-    z80.cpp
+add_library(Z80 STATIC 
+    Z80.cpp
     mnemonics.cpp
     instructions/8bit_load_group.cpp
     instructions/16bit_load_group.cpp
@@ -12,10 +12,8 @@ add_library(z80 STATIC
     instructions/jump_group.cpp
     instructions/call_return_group.cpp
     instructions/input_output_group.cpp
-
-    ../common/utilities.cpp
 )
 
-target_include_directories(z80 PRIVATE 
-    ${PROJECT_SOURCE_DIR}/src
+target_include_directories(Z80 PRIVATE 
+    ${CMAKE_CURRENT_LIST_DIR}
 )

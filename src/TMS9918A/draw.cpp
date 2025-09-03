@@ -1,9 +1,8 @@
-#include "vdp/vdp.h"
-#include "common/utilities.h"
-#include "common/devices.h"
+#include "TMS9918A.h"
+#include "utilities.h"
 #include <cstring>
 
-void vdp::drawScanLine() {
+void TMS9918A::drawScanLine() {
     bool enableDisplay = reg[0x1] & 0b01000000;
 
     // Render the background
@@ -20,7 +19,7 @@ void vdp::drawScanLine() {
     }
 }
 
-void vdp::drawTile(uint16_t tileIndex, int x, int y, bool horizontalFlip, bool verticalFlip, bool spritePalette, bool doubleScale, bool tileWrap) {
+void TMS9918A::drawTile(uint16_t tileIndex, int x, int y, bool horizontalFlip, bool verticalFlip, bool spritePalette, bool doubleScale, bool tileWrap) {
     bool hideLeftMostPixels = (reg[0x0] & 0b00100000);
     
     uint16_t addr = tileIndex * 32;
@@ -96,7 +95,7 @@ void vdp::drawTile(uint16_t tileIndex, int x, int y, bool horizontalFlip, bool v
     }
 }
 
-void vdp::drawTilemap(bool drawPriority) {
+void TMS9918A::drawTilemap(bool drawPriority) {
     bool horizontalScrollLock       = (reg[0x0] & 0b01000000);
     bool verticalScrollLock         = (reg[0x0] & 0b10000000);
 
@@ -157,7 +156,7 @@ void vdp::drawTilemap(bool drawPriority) {
     }
 }
 
-void vdp::drawSprites() {
+void TMS9918A::drawSprites() {
     bool enableZoomedSprites        = (reg[0x1] & 0b00000001);
     bool enableStackedSprites       = (reg[0x1] & 0b00000010);
     bool enable8thBitTileIndex      = (reg[0x6] & 0b00000100);
@@ -226,16 +225,16 @@ void vdp::drawSprites() {
     }
 }
 
-int vdp::getColor(uint8_t paletteIndex) {
+int TMS9918A::getColor(uint8_t paletteIndex) {
     uint8_t r = 0;
     uint8_t g = 0;
     uint8_t b = 0;
     uint8_t a = 255;
 
-    switch(deviceType) {
+    switch(videoFormat) {
 
-        case MASTER_SYSTEM_NTSC:
-        case MASTER_SYSTEM_PAL:
+        case MASTERSYSTEM_NTSC:
+        case MASTERSYSTEM_PAL:
         {
             r = ((cram[paletteIndex] & 0b00000011) >> 0) * 85;
             g = ((cram[paletteIndex] & 0b00001100) >> 2) * 85;
@@ -243,7 +242,7 @@ int vdp::getColor(uint8_t paletteIndex) {
             break;
         }
 
-        case GAME_GEAR:
+        case GAMEGEAR_NTSC:
         {
             r = ((cram[paletteIndex*2+0] & 0b00001111) >> 0) * 17;
             g = ((cram[paletteIndex*2+0] & 0b11110000) >> 4) * 17;

@@ -1,11 +1,11 @@
-#ifndef SEGA_PSG_H
-#define SEGA_PSG_H
+#ifndef SN76489_PROCESSOR_H
+#define SN76489_PROCESSOR_H
 
 #include <cstdint>
 
-struct psg {
+struct SN76489 {
 
-    psg();
+    SN76489();
 
     uint16_t reg[4];
     uint16_t counter[4];
