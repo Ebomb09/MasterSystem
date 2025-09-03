@@ -195,22 +195,24 @@ void TMS9918A::drawSprites() {
             spriteBuffer ++;
 
             // Sprite overflow, exit condition
-            if(spriteBuffer >= 8) {
+            if(spriteBuffer > 8) {
                 status |= SpriteOverflow;
                 // Break for more accurate sprite flickering
                 // break;
-            }
 
-            // Sprite collision
-            if((status & SpriteCollision) == 0) {
+            }else {
 
-                for(int j = x; j < x+size && j < 256; j ++) {
+                // Sprite collision
+                if((status & SpriteCollision) == 0) {
 
-                    if(!empty[j]) {
-                        status |= SpriteCollision;
-                        break;
+                    for(int j = x; j < x+size && j < 256; j ++) {
+
+                        if(!empty[j]) {
+                            status |= SpriteCollision;
+                            break;
+                        }
+                        empty[j] = false;
                     }
-                    empty[j] = false;
                 }
             }
 
