@@ -35,4 +35,4 @@ target_link_libraries(sms PRIVATE Z80 SN76489 TMS9918A SDL3-shared)
 # Z80 CPU test
 add_executable(test src/test.cpp)
 target_include_directories(test PRIVATE src)
-target_link_libraries(test PRIVATE Z80 SDL3-shared nlohmann_json)
+target_link_libraries(test PRIVATE Z80 nlohmann_json)
