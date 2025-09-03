@@ -38,13 +38,6 @@ void TMS9918A::writeControlPort(uint8_t data) {
                 break;
             }
 
-            // VRAM write
-            case 1:
-            {
-                readBuffer = vram[getControlVRAMAddress()];
-                break;
-            }
-
             // Register write
             case 2:
             {
@@ -80,6 +73,7 @@ uint8_t TMS9918A::readDataPort() {
 }
 
 void TMS9918A::writeDataPort(uint8_t data) {
+    readBuffer = data;
     controlOffset = 0;
 
     switch(getControlCode()) {
@@ -89,7 +83,6 @@ void TMS9918A::writeDataPort(uint8_t data) {
         case 2:
         {
             vram[getControlVRAMAddress()] = data;
-            readBuffer = data;
             incrementControlVRAMAddress();
             break;
         }
