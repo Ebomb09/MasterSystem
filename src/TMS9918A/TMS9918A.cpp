@@ -147,8 +147,7 @@ bool TMS9918A::cycle() {
     if(hCounter == getActiveDisplayWidth()) {
 
         // Render the scanline
-        if(vCounter < getActiveDisplayHeight())
-            drawScanLine();
+        drawScanLine();
     
         // Cleared Active Display
         if(vCounter == getActiveDisplayHeight()-1) {

@@ -4,23 +4,24 @@
 #include <iostream>
 
 void TMS9918A::drawScanLine() {
-    bool enableDisplay = reg[0x1] & 0b01000000;
 
     // Render the background
     uint8_t bgColor = reg[0x07] + 16;
 
     for(int x = 0; x < 256; x ++) 
-       drawPixel(x, vCounter, getColor(bgColor));
+       drawPixel(x, vCounter, getColor(bgColor), true);
 
-    // Render the tilemap
-    if(enableDisplay) {
-        drawTilemap(false);
-        drawSprites();
-        drawTilemap(true);
-    }
+    drawTilemap(false);
+    drawSprites();
+    drawTilemap(true);
 }
 
-void TMS9918A::drawPixel(int x, int y, int color) {
+void TMS9918A::drawPixel(int x, int y, int color, bool force) {
+    bool enableDisplay = reg[0x1] & 0b01000000;
+
+    if(!enableDisplay && !force)
+        return;
+
     int index = x + y * 256;
 
     if(index >= 0 && index < 256 * 240) {
@@ -165,6 +166,7 @@ void TMS9918A::drawTilemap(bool drawPriority) {
 }
 
 void TMS9918A::drawSprites() {
+    bool enableDisplay = reg[0x1] & 0b01000000;
     bool enableZoomedSprites        = (reg[0x1] & 0b00000001);
     bool enableStackedSprites       = (reg[0x1] & 0b00000010);
     bool enable8thBitTileIndex      = (reg[0x6] & 0b00000100);
@@ -204,16 +206,18 @@ void TMS9918A::drawSprites() {
 
             // Sprite overflow, exit condition
             if(spriteBuffer > 8) {
-                status |= SpriteOverflow;
-                // Break for more accurate sprite flickering
-                // break;
 
-            }else {
+                // Only overflow when in active display
+                if(y < getActiveDisplayHeight())
+                    status |= SpriteOverflow;
+
+            }else if(enableDisplay) {
 
                 // Sprite collision
                 if((status & SpriteCollision) == 0) {
 
-                    for(int j = x; j < x+size && j < 256; j ++) {
+                    // Doesn't check collisions for the right edge
+                    for(int j = x; j < x+size && j < 256-1; j ++) {
 
                         if(!empty[j]) {
                             status |= SpriteCollision;

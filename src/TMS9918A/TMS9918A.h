@@ -77,7 +77,7 @@ struct TMS9918A {
     int frameBuffer[256 * 240];
 
     void drawScanLine();
-    void drawPixel(int x, int y, int color);
+    void drawPixel(int x, int y, int color, bool force = false);
     void drawTile(uint16_t tileIndex, int x, int y, bool horizontalFlip=false, bool verticalFlip=false, bool spritePalette = false, bool doubleScale = false, bool tileWrap = false);
     void drawTilemap(bool drawPriority);
     void drawSprites();
