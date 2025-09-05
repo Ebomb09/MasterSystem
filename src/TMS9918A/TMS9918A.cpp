@@ -140,22 +140,33 @@ bool TMS9918A::cycle() {
     if(vCounter >= getVCounterLimit()) {
         clearVBlank = true;
         vCounter = 0;
+        lineCounter = reg[0xA];
     }
 
-    // Render the scanline
-    if(vCounter < getActiveDisplayHeight() && hCounter == getActiveDisplayWidth()) {
-        drawScanLine();
-    }
+    // Completed visible portion of scanline
+    if(hCounter == getActiveDisplayWidth()) {
 
-    // Cleared Active Display
-    if(vCounter == getActiveDisplayHeight()-1 && hCounter == getActiveDisplayWidth()) {
-        status |= VBlank;
-        if(enableFrameInterrupts) requestFrameInterrupt = true;
-    }
+        // Render the scanline
+        if(vCounter < getActiveDisplayHeight())
+            drawScanLine();
+    
+        // Cleared Active Display
+        if(vCounter == getActiveDisplayHeight()-1) {
+            status |= VBlank;
+            requestFrameInterrupt = true;
+        }
 
-    // Cleared LineCounter
-    if(reg[0xA] > 0 && vCounter > 0 && vCounter % reg[0xA] == 0 && vCounter < getActiveDisplayHeight() && hCounter == getActiveDisplayWidth()) {
-        if(enableLineInterrupts) requestLineInterrupt = true;
+        // Decrement the linecounter
+        if(vCounter < getActiveDisplayHeight()+1) {
+
+            if(lineCounter > 0) {
+                lineCounter --;
+
+            }else {
+                lineCounter = reg[0xA];
+                requestLineInterrupt = true;
+            }
+        }
     }
     return clearVBlank;
 }
@@ -230,12 +241,24 @@ uint16_t TMS9918A::getNameTableBaseAddress() {
     return ((reg[0x2] & 0b00001110) >> 1) * 0x0800;
 }
 
+uint16_t TMS9918A::getNameTableSize() {
+    return (getActiveDisplayHeight() == 192) ? 32*28 : 32*32;
+}
+
 uint16_t TMS9918A::getSpriteTableBaseAddress() {
     return ((reg[0x5] & 0b01111110) >> 1) * 0x0100;
 }
 
+uint16_t TMS9918A::getSpriteTableSize() {
+    return 64;
+}
+
 uint8_t TMS9918A::readHCounter() {
-    return hCounter >> 1;
+    
+    if(hCounter >= 0xEA)
+        return 0x93 + hCounter - 0xEA;
+    
+    return hCounter;
 }
 
 uint8_t TMS9918A::readVCounter() {

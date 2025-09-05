@@ -1,6 +1,7 @@
 #include "TMS9918A.h"
 #include "utilities.h"
 #include <cstring>
+#include <iostream>
 
 void TMS9918A::drawScanLine() {
     bool enableDisplay = reg[0x1] & 0b01000000;
@@ -9,7 +10,7 @@ void TMS9918A::drawScanLine() {
     uint8_t bgColor = reg[0x07] + 16;
 
     for(int x = 0; x < 256; x ++) 
-        frameBuffer[x + vCounter * 256] = getColor(bgColor);
+       drawPixel(x, vCounter, getColor(bgColor));
 
     // Render the tilemap
     if(enableDisplay) {
@@ -19,11 +20,19 @@ void TMS9918A::drawScanLine() {
     }
 }
 
+void TMS9918A::drawPixel(int x, int y, int color) {
+    int index = x + y * 256;
+
+    if(index >= 0 && index < 256 * 240) {
+        frameBuffer[index] = color;
+    }
+}
+
 void TMS9918A::drawTile(uint16_t tileIndex, int x, int y, bool horizontalFlip, bool verticalFlip, bool spritePalette, bool doubleScale, bool tileWrap) {
     bool hideLeftMostPixels = (reg[0x0] & 0b00100000);
     
     uint16_t addr = tileIndex * 32;
-    uint16_t tileMapHeight = (getActiveDisplayHeight() == 192) ? 8*28 : 8*32;
+    uint16_t tileMapHeight = (getActiveDisplayHeight() == 192) ? 28*8 : 32*8;
 
     uint8_t size = (doubleScale) ? 16 : 8;
 
@@ -78,7 +87,7 @@ void TMS9918A::drawTile(uint16_t tileIndex, int x, int y, bool horizontalFlip, b
                 paletteIndex += 16;
 
             // Transparent palettes
-            if(paletteIndex == 0 || paletteIndex == 16)
+            if(paletteIndex == 16)
                 continue;
 
             int final_x = x + dot_x;
@@ -90,7 +99,7 @@ void TMS9918A::drawTile(uint16_t tileIndex, int x, int y, bool horizontalFlip, b
             if(hideLeftMostPixels && final_x < 8)
                 continue;
 
-            frameBuffer[final_x + final_y * 256] = getColor(paletteIndex);
+            drawPixel(final_x, final_y, getColor(paletteIndex));
         }
     }
 }
@@ -99,20 +108,19 @@ void TMS9918A::drawTilemap(bool drawPriority) {
     bool horizontalScrollLock       = (reg[0x0] & 0b01000000);
     bool verticalScrollLock         = (reg[0x0] & 0b10000000);
 
-    // Base address
-    uint16_t addr = getNameTableBaseAddress();
-
     uint16_t tileMapHeight = (getActiveDisplayHeight() == 192) ? 28*8 : 32*8;
+
+    uint16_t addr = getNameTableBaseAddress();
 
     int x = 0, y = 0;
 
     uint8_t scrollX = reg[0x8];
     uint8_t scrollY = reg[0x9];
 
-    for(int i = addr; i < 0x3F00; i += 2) {
-        uint16_t entry = pairBytes(vram[i+1], vram[i]);
+    for(int i = 0; i < getNameTableSize(); i ++) {
+        uint16_t entry = pairBytes(vram[addr+i*2+1], vram[addr+i*2+0]);
 
-        uint16_t tileIndex            = entry & 0b0000000111111111;
+        uint16_t tileIndex          = entry & 0b0000000111111111;
         bool horizontalFlip         = entry & 0b0000001000000000;
         bool verticalFlip           = entry & 0b0000010000000000;
         bool spritePalette          = entry & 0b0000100000000000;
@@ -132,7 +140,7 @@ void TMS9918A::drawTilemap(bool drawPriority) {
             pos_y -= scrollY;
 
             if(pos_y < 0)
-                pos_y += (getActiveDisplayHeight() == 192) ? 8*28 : 8*32;
+                pos_y += tileMapHeight;
         }
 
         if(pos_y <= vCounter && vCounter < pos_y+8) {
@@ -175,7 +183,7 @@ void TMS9918A::drawSprites() {
     uint8_t size = (enableZoomedSprites) ? 16 : 8;
     uint8_t combined_h = (enableStackedSprites) ? size * 2 : size;
 
-    for(int i = 0; i < 64; i ++) {
+    for(int i = 0; i < getSpriteTableSize(); i ++) {
         uint8_t y             = vram[addr+i];
         uint8_t x             = vram[addr+0x80+i*2];
         uint16_t tileIndex    = vram[addr+0x80+i*2+1];

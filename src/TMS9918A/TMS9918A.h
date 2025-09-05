@@ -53,6 +53,7 @@ struct TMS9918A {
     /* TV H/V scanners, active / inactive areas */
     uint16_t vCounter;
     uint16_t hCounter;
+    uint8_t lineCounter;
 
     uint8_t readHCounter();
     uint8_t readVCounter();
@@ -69,11 +70,14 @@ struct TMS9918A {
 
     /* VRAM addresses */
     uint16_t getNameTableBaseAddress();
+    uint16_t getNameTableSize();
     uint16_t getSpriteTableBaseAddress();
+    uint16_t getSpriteTableSize();
 
     int frameBuffer[256 * 240];
 
     void drawScanLine();
+    void drawPixel(int x, int y, int color);
     void drawTile(uint16_t tileIndex, int x, int y, bool horizontalFlip=false, bool verticalFlip=false, bool spritePalette = false, bool doubleScale = false, bool tileWrap = false);
     void drawTilemap(bool drawPriority);
     void drawSprites();
