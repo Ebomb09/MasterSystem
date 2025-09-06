@@ -5,44 +5,60 @@
 
 void TMS9918A::drawScanLine() {
 
-    // Render the background
-    uint8_t bgColor = reg[0x07] + 16;
+    // Reset line
+    uint8_t bgPalette = reg[0x7] + 16;
 
-    for(int x = 0; x < 256; x ++) 
-       drawPixel(x, vCounter, getColor(bgColor), true);
+    if(vCounter < getActiveDisplayHeight()) {
 
-    drawTilemap(false);
+        for(int x = 0; x < 256; x ++) {
+            frameBuffer[x + vCounter * 256] = getColor(bgPalette);
+            depthBuffer[x + vCounter * 256] = CLEAR;
+        }
+    }
+
     drawSprites();
-    drawTilemap(true);
+    drawTilemap();
 }
 
-void TMS9918A::drawPixel(int x, int y, int color, bool force) {
+bool TMS9918A::drawPixel(int x, int y, int color, int depth, bool force) {
     bool enableDisplay = reg[0x1] & 0b01000000;
-
-    if(!enableDisplay && !force)
-        return;
 
     int index = x + y * 256;
 
-    if(index >= 0 && index < 256 * 240) {
-        frameBuffer[index] = color;
+    if(index >= 0 && index < 256 * 313) {
+
+        if(depthBuffer[index] < depth) {
+
+            if(enableDisplay || force) {
+                frameBuffer[index] = color;
+                depthBuffer[index] = depth;
+            }
+            return true;
+
+        // Set sprite collision
+        }else if(depthBuffer[index] == SPRITE && depth == SPRITE && (status & SpriteOverflow) == 0 && x < 255) {
+            status |= SpriteCollision;
+        }
     }
+    return false;
 }
 
-void TMS9918A::drawTile(int tileIndex, int x, int y, int drawMode, bool doubleScale, bool horizontalFlip, bool verticalFlip) {
+bool TMS9918A::drawTile(int tileIndex, int x, int y, int drawMode, bool doubleScale, bool horizontalFlip, bool verticalFlip) {
     bool hideLeftMostPixels = (reg[0x0] & 0b00100000);
-    
+
     uint16_t addr = tileIndex * 32;
     uint16_t tileMapHeight = (getActiveDisplayHeight() == 192) ? 28*8 : 32*8;
 
     uint8_t size = (doubleScale) ? 16 : 8;
+
+    bool res = false;
 
     for(int dot_y = 0; dot_y < size; dot_y ++) {
         int get_y = (doubleScale) ? dot_y / 2 : dot_y;
         int draw_y = y + dot_y;
 
         // Wrap tile pixels around tile map
-        if((drawMode == TILE || drawMode == TILE_ALT) && draw_y >= tileMapHeight)
+        if(drawMode != SPRITE && draw_y >= tileMapHeight)
             draw_y -= tileMapHeight;
 
         if(draw_y != vCounter)
@@ -89,23 +105,37 @@ void TMS9918A::drawTile(int tileIndex, int x, int y, int drawMode, bool doubleSc
             if(byte[3] & (128 >> get_x))
                 paletteIndex |= 0b1000;
 
-            // Secondary palette
-            if(drawMode == SPRITE || drawMode == TILE_ALT)
-                paletteIndex += 16;
 
             // Transparent palettes
-            if(drawMode == SPRITE && paletteIndex == 16)
-                continue;
+            int currentDrawMode = drawMode;
+
+            if(paletteIndex == 0) {
+
+                if(drawMode == SPRITE) {
+                    continue;
+
+                }else if(drawMode == TILE_PRIORITY || drawMode == TILE_ALT_PRIORITY) {
+                    currentDrawMode -= 3;
+                }
+            }
+
+            // Secondary palette
+            if(drawMode == SPRITE || drawMode == TILE_ALT || drawMode == TILE_ALT_PRIORITY) {
+                paletteIndex += 16;
+            }
 
             if(hideLeftMostPixels && draw_x < 8)
                 continue;
 
-            drawPixel(draw_x, draw_y, getColor(paletteIndex));
+            if(drawPixel(draw_x, draw_y, getColor(paletteIndex), currentDrawMode)) {
+                res = true;
+            }
         }
     }
+    return res;
 }
 
-void TMS9918A::drawTilemap(bool drawPriority) {
+void TMS9918A::drawTilemap() {
     bool horizontalScrollLock       = (reg[0x0] & 0b01000000);
     bool verticalScrollLock         = (reg[0x0] & 0b10000000);
 
@@ -149,9 +179,12 @@ void TMS9918A::drawTilemap(bool drawPriority) {
             (pos_y-tileMapHeight <= vCounter && vCounter < pos_y-tileMapHeight+8);
 
         if(fallsOnLine) {
+            int drawMode = (spritePalette) ? TILE_ALT : TILE;
 
-            if(priority == drawPriority)
-                drawTile(tileIndex, pos_x, pos_y, (spritePalette) ? TILE_ALT : TILE, false, horizontalFlip, verticalFlip);
+            if(priority)
+                drawMode += 3;
+
+            drawTile(tileIndex, pos_x, pos_y, drawMode, false, horizontalFlip, verticalFlip);
         }
 
         x += 8;
@@ -171,10 +204,6 @@ void TMS9918A::drawSprites() {
 
     // Base address
     uint16_t addr = getSpriteTableBaseAddress();
-
-    // Sprite position tracker
-    uint8_t empty[256];
-    std::memset(empty, true, 256);
 
     uint8_t spriteBuffer = 0;
 
@@ -197,41 +226,28 @@ void TMS9918A::drawSprites() {
         if(enableShiftSpritesLeft)
             x -= 8;
 
-        // Sprite occurs within vcounter
-        if(y <= vCounter && vCounter < y+combined_h) {
-            spriteBuffer ++;
+        // Note: Sprites are drawn one pixel lower
+        y += 1;
+
+        bool drawn = false;
+
+        if(!enableStackedSprites) {
+            drawn = drawTile(tileIndex, x, y, SPRITE, enableZoomedSprites);
+
+        }else{
+            drawn = drawTile((tileIndex & ~1), x, y, SPRITE, enableZoomedSprites) ||
+                    drawTile((tileIndex & ~1)+1, x, y+size, SPRITE, enableZoomedSprites);
+        }
+
+        if(drawn) {
+
+            if(y < getActiveDisplayHeight())
+                spriteBuffer ++;
 
             // Sprite overflow, exit condition
-            if(spriteBuffer > 8) {
-
-                // Only overflow when in active display
-                if(y < getActiveDisplayHeight())
-                    status |= SpriteOverflow;
-
-            }else if(enableDisplay) {
-
-                // Sprite collision
-                if((status & SpriteCollision) == 0) {
-
-                    // Doesn't check collisions for the right edge
-                    for(int j = x; j < x+size && j < 256-1; j ++) {
-
-                        if(!empty[j]) {
-                            status |= SpriteCollision;
-                            break;
-                        }
-                        empty[j] = false;
-                    }
-                }
-            }
-
-            // Note: Sprites are drawn one pixel lower
-            if(!enableStackedSprites) {
-                drawTile(tileIndex, x, y+1, SPRITE, enableZoomedSprites);
-    
-            }else{
-                drawTile((tileIndex & ~1), x, y+1, SPRITE, enableZoomedSprites);         
-                drawTile((tileIndex & ~1)+1, x, y+1+size, SPRITE, enableZoomedSprites);
+            if(spriteBuffer >= 8) {
+                status |= SpriteOverflow;                
+                break;
             }
         }
     }

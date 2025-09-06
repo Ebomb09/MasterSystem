@@ -76,18 +76,22 @@ struct TMS9918A {
     uint16_t getSpriteTableBaseAddress();
     uint16_t getSpriteTableSize();
 
-    int frameBuffer[256 * 240];
+    int frameBuffer[256 * 313];
+    int depthBuffer[256 * 313];
 
     void drawScanLine();
-    void drawPixel(int x, int y, int color, bool force = false);
+    bool drawPixel(int x, int y, int color, int depth, bool force = false);
 
     enum TileDrawMode {
-        SPRITE,
+        CLEAR,
         TILE,
-        TILE_ALT
+        TILE_ALT,
+        SPRITE,
+        TILE_PRIORITY,
+        TILE_ALT_PRIORITY
     };
-    void drawTile(int tileIndex, int x, int y, int drawMode, bool doubleScale = false, bool horizontalFlip=false, bool verticalFlip=false);
-    void drawTilemap(bool drawPriority);
+    bool drawTile(int tileIndex, int x, int y, int drawMode, bool doubleScale = false, bool horizontalFlip=false, bool verticalFlip=false);
+    void drawTilemap();
     void drawSprites();
     int getColor(int paletteIndex);
 };
