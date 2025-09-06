@@ -341,6 +341,20 @@ void sms::port_write(uint16_t addr, uint8_t data) {
         // SDSC, debug console
         std::cout << (char)data;
 
+    } else if(addr >= 0x01 && addr <= 0x3F && addr % 2 == 1) {
+        uint8_t joyB_TH_val = (data & 0b10000000) >> 7;
+        uint8_t joyB_TR_val = (data & 0b01000000) >> 6;
+        uint8_t joyA_TH_val = (data & 0b00100000) >> 5;
+        uint8_t joyA_TR_val = (data & 0b00010000) >> 4;
+        uint8_t joyB_TH_dir = (data & 0b00001000) >> 3;
+        uint8_t joyB_TR_dir = (data & 0b00000100) >> 2;
+        uint8_t joyA_TH_dir = (data & 0b00000010) >> 1;
+        uint8_t joyA_TR_dir = (data & 0b00000001) >> 0;
+
+        setJoyPadControl(Joypad_B_TH, joyB_TH_val);
+        setJoyPadControl(Joypad_B_TR, joyB_TR_val);            
+        setJoyPadControl(Joypad_A_TH, joyA_TH_val);
+        setJoyPadControl(Joypad_A_TR, joyA_TR_val);    
 
     }else if(addr >= 0x40 && addr <= 0x7F) {
         psg.write(data);
@@ -392,7 +406,7 @@ void sms::setJoyPadControl(uint8_t control, bool val) {
         case Joypad_B_Right:    bit = 1 << 1; ptr = &joypad2; break;
         case Joypad_B_Left:     bit = 1 << 0; ptr = &joypad2; break;
 
-        case Console_Reset:     
+        case Console_Reset:
         {
             if(gpu.videoFormat == TMS9918A::GAMEGEAR_NTSC){
                 bit = 1 << 7;
@@ -406,6 +420,12 @@ void sms::setJoyPadControl(uint8_t control, bool val) {
 
     // Toggle the bit and set the value
     if(ptr) {
+
+        // Pull up the TH, light gun trigger
+        if((control == Joypad_A_TH || control == Joypad_B_TH) && ((*ptr) & bit) == 0 && val) {
+            gpu.updateHCounter();
+        }
+
         (*ptr) &= ~bit;
 
         if(val)

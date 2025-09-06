@@ -54,9 +54,11 @@ struct TMS9918A {
     uint16_t vCounter;
     uint16_t hCounter;
     uint8_t lineCounter;
+    uint16_t hCounterBuffer;
 
     uint8_t readHCounter();
     uint8_t readVCounter();
+    void updateHCounter();
     uint16_t getActiveDisplayWidth();
     uint16_t getActiveDisplayHeight();
     uint16_t getHCounterLimit();
@@ -78,10 +80,16 @@ struct TMS9918A {
 
     void drawScanLine();
     void drawPixel(int x, int y, int color, bool force = false);
-    void drawTile(uint16_t tileIndex, int x, int y, bool horizontalFlip=false, bool verticalFlip=false, bool spritePalette = false, bool doubleScale = false, bool tileWrap = false);
+
+    enum TileDrawMode {
+        SPRITE,
+        TILE,
+        TILE_ALT
+    };
+    void drawTile(int tileIndex, int x, int y, int drawMode, bool doubleScale = false, bool horizontalFlip=false, bool verticalFlip=false);
     void drawTilemap(bool drawPriority);
     void drawSprites();
-    int getColor(uint8_t paletteIndex);
+    int getColor(int paletteIndex);
 };
 
 #endif

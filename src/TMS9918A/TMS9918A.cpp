@@ -12,6 +12,7 @@ TMS9918A::TMS9918A() {
 
     hCounter = 0;
     vCounter = 0;
+    hCounterBuffer = 0;
 
     mode = 4;
 
@@ -254,10 +255,14 @@ uint16_t TMS9918A::getSpriteTableSize() {
 
 uint8_t TMS9918A::readHCounter() {
     
-    if(hCounter >= 0xEA)
-        return 0x93 + hCounter - 0xEA;
+    if(hCounterBuffer >= 0xEA)
+        return 0x93 + hCounterBuffer - 0xEA;
     
-    return hCounter;
+    return hCounterBuffer;
+}
+
+void TMS9918A::updateHCounter() {
+    hCounterBuffer = hCounter;
 }
 
 uint8_t TMS9918A::readVCounter() {

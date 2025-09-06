@@ -29,7 +29,7 @@ void TMS9918A::drawPixel(int x, int y, int color, bool force) {
     }
 }
 
-void TMS9918A::drawTile(uint16_t tileIndex, int x, int y, bool horizontalFlip, bool verticalFlip, bool spritePalette, bool doubleScale, bool tileWrap) {
+void TMS9918A::drawTile(int tileIndex, int x, int y, int drawMode, bool doubleScale, bool horizontalFlip, bool verticalFlip) {
     bool hideLeftMostPixels = (reg[0x0] & 0b00100000);
     
     uint16_t addr = tileIndex * 32;
@@ -39,8 +39,13 @@ void TMS9918A::drawTile(uint16_t tileIndex, int x, int y, bool horizontalFlip, b
 
     for(int dot_y = 0; dot_y < size; dot_y ++) {
         int get_y = (doubleScale) ? dot_y / 2 : dot_y;
+        int draw_y = y + dot_y;
 
-        if(y + dot_y != vCounter)
+        // Wrap tile pixels around tile map
+        if((drawMode == TILE || drawMode == TILE_ALT) && draw_y >= tileMapHeight)
+            draw_y -= tileMapHeight;
+
+        if(draw_y != vCounter)
             continue;
 
         // Read in the 4 bytes that determine a dots palette index
@@ -67,6 +72,7 @@ void TMS9918A::drawTile(uint16_t tileIndex, int x, int y, bool horizontalFlip, b
 
         for(int dot_x = 0; dot_x < size; dot_x ++) {
             int get_x = (doubleScale) ? dot_x / 2 : dot_x;
+            int draw_x = x + dot_x;
 
             // Decode the palette index
             uint8_t paletteIndex = 0;
@@ -83,24 +89,18 @@ void TMS9918A::drawTile(uint16_t tileIndex, int x, int y, bool horizontalFlip, b
             if(byte[3] & (128 >> get_x))
                 paletteIndex |= 0b1000;
 
-            // 0-15 BG, 16-31 Sprites
-            if(spritePalette)
+            // Secondary palette
+            if(drawMode == SPRITE || drawMode == TILE_ALT)
                 paletteIndex += 16;
 
             // Transparent palettes
-            if(paletteIndex == 16)
+            if(drawMode == SPRITE && paletteIndex == 16)
                 continue;
 
-            int final_x = x + dot_x;
-            int final_y = y + dot_y;
-
-            if(tileWrap && final_y >= tileMapHeight)
-                final_y -= tileMapHeight;
-
-            if(hideLeftMostPixels && final_x < 8)
+            if(hideLeftMostPixels && draw_x < 8)
                 continue;
 
-            drawPixel(final_x, final_y, getColor(paletteIndex));
+            drawPixel(draw_x, draw_y, getColor(paletteIndex));
         }
     }
 }
@@ -144,17 +144,14 @@ void TMS9918A::drawTilemap(bool drawPriority) {
                 pos_y += tileMapHeight;
         }
 
-        if(pos_y <= vCounter && vCounter < pos_y+8) {
+        bool fallsOnLine = 
+            (pos_y <= vCounter && vCounter < pos_y+8) || 
+            (pos_y-tileMapHeight <= vCounter && vCounter < pos_y-tileMapHeight+8);
+
+        if(fallsOnLine) {
 
             if(priority == drawPriority)
-                drawTile(tileIndex, pos_x, pos_y, horizontalFlip, verticalFlip, spritePalette, false, true);
-        }
-
-        // Check wrap around as well
-        if(pos_y+8 >= tileMapHeight && pos_y-tileMapHeight <= vCounter && vCounter < pos_y-tileMapHeight+8) {
-
-            if(priority == drawPriority)
-                drawTile(tileIndex, pos_x, pos_y-tileMapHeight, horizontalFlip, verticalFlip, spritePalette, false, true);
+                drawTile(tileIndex, pos_x, pos_y, (spritePalette) ? TILE_ALT : TILE, false, horizontalFlip, verticalFlip);
         }
 
         x += 8;
@@ -186,9 +183,9 @@ void TMS9918A::drawSprites() {
     uint8_t combined_h = (enableStackedSprites) ? size * 2 : size;
 
     for(int i = 0; i < getSpriteTableSize(); i ++) {
-        uint8_t y             = vram[addr+i];
-        uint8_t x             = vram[addr+0x80+i*2];
-        uint16_t tileIndex    = vram[addr+0x80+i*2+1];
+        int y               = vram[addr+i];
+        int x               = vram[addr+0x80+i*2];
+        uint16_t tileIndex  = vram[addr+0x80+i*2+1];
 
         if(enable8thBitTileIndex)
             tileIndex |= 256;
@@ -228,18 +225,19 @@ void TMS9918A::drawSprites() {
                 }
             }
 
+            // Note: Sprites are drawn one pixel lower
             if(!enableStackedSprites) {
-                drawTile(tileIndex, x, y, false, false, true, enableZoomedSprites);
+                drawTile(tileIndex, x, y+1, SPRITE, enableZoomedSprites);
     
             }else{
-                drawTile((tileIndex & ~1), x, y, false, false, true, enableZoomedSprites);         
-                drawTile((tileIndex & ~1)+1, x, y+size, false, false, true, enableZoomedSprites);
+                drawTile((tileIndex & ~1), x, y+1, SPRITE, enableZoomedSprites);         
+                drawTile((tileIndex & ~1)+1, x, y+1+size, SPRITE, enableZoomedSprites);
             }
         }
     }
 }
 
-int TMS9918A::getColor(uint8_t paletteIndex) {
+int TMS9918A::getColor(int paletteIndex) {
     uint8_t r = 0;
     uint8_t g = 0;
     uint8_t b = 0;
